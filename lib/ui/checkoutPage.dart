@@ -1,27 +1,98 @@
 import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
+import 'package:khalti_flutter/khalti_flutter.dart';
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import '../integration/khalti.dart';
+import 'homepage.dart';
+
+enum PaymentMethod { esewa, cod, khalti }
 
 class CheckoutPage extends StatefulWidget {
-  const CheckoutPage({super.key});
+  final double price;
+  CheckoutPage({super.key, required this.price});
 
   @override
   State<CheckoutPage> createState() => _CheckoutPageState();
 }
 
 class _CheckoutPageState extends State<CheckoutPage> {
-  final TextEditingController nameController = TextEditingController();
+  final TextEditingController phoneController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
   final TextEditingController addressController = TextEditingController();
   String currentAddress = '';
   double latitude = 0.0;
   double longitude = 0.0;
+  List<Map<String, dynamic>> cartItems = [];
+  PaymentMethod? selectedPaymentMethod;
+
+
+  Future<void> sendOrderEmail(List<Map<String, dynamic>> cartItems) async {
+    final String serviceId = 'service_al7vazj';
+    final String templateId = 'template_flcr12v';
+    final String userId = 'oPGEMtN0yn6uz_g1n';
+
+    final url = Uri.parse('https://api.emailjs.com/api/v1.0/email/send');
+
+    List<Map<String, dynamic>> formattedCartItems = cartItems.map((item) {
+      return {
+        'name': item['name'],
+        'image_url': item['image'],
+        'units': item['quantity'] ?? 1,
+        'price': item['price'].toString(),
+      };
+    }).toList();
+
+    final response = await http.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'origin': 'http://localhost'
+      },
+      body: json.encode({
+        'service_id': serviceId,
+        'template_id': templateId,
+        'user_id': userId,
+        'template_params': {
+          'order_id': DateTime.now().millisecondsSinceEpoch.toString(),
+          'customer_name': phoneController.text,
+          'email': "anuptwri007@gmail.com",
+          'orders': formattedCartItems,
+          'cost': {
+            'shipping': '50',
+            'tax': '100',
+            'total': widget.price.toString(),
+          }
+        },
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      print('Email sent successfully!');
+    } else {
+      print('Failed to send email: ${response.body}');
+    }
+  }
+
+
 
   @override
   void initState() {
     super.initState();
     getCurrentLocation();
+    loadCartItems();
+  }
+
+  Future<void> loadCartItems() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> cart = prefs.getStringList('cart') ?? [];
+    setState(() {
+      cartItems = cart.map((item) => jsonDecode(item) as Map<String, dynamic>).toList();
+    });
   }
 
   Future<void> getCurrentLocation() async {
@@ -30,19 +101,17 @@ class _CheckoutPageState extends State<CheckoutPage> {
 
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-
+      await Geolocator.openLocationSettings();
       return;
     }
 
     permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
-      if (permission != LocationPermission.always) {
-
+      if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
         return;
       }
     }
-
 
     Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
     latitude = position.latitude;
@@ -50,22 +119,57 @@ class _CheckoutPageState extends State<CheckoutPage> {
 
     List<Placemark> placemarks = await placemarkFromCoordinates(latitude, longitude);
     Placemark place = placemarks[0];
-    log(place.toString());
     setState(() {
-
       currentAddress = '${place.subLocality}, ${place.locality}, ${place.country}';
     });
   }
 
-
   void proceedToPayment() {
-    if (nameController.text.isEmpty || currentAddress.isEmpty) {
+    if (phoneController.text.isEmpty || emailController.text.isEmpty || currentAddress.isEmpty || selectedPaymentMethod == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill all fields')),
+        const SnackBar(content: Text('Please fill all fields and select a payment method')),
       );
       return;
     }
+    KhaltiScope.of(context).pay(
+        config: PaymentConfig(
+            amount:(widget.price*100).toInt() ,
+            productIdentity: 'laptop',
+            productName: 'Dell laptop'),
+        preferences: [
+          PaymentPreference.khalti,
+          PaymentPreference.connectIPS,
+          PaymentPreference.eBanking,
+        ],
+        onSuccess: (success){
+          print("Payment Success: $success");
+          sendOrderEmail(cartItems);
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: const Text('Payment Successful'),
+                content: Text('Response: $success'),
+                actions: <Widget>[
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (context) => HomePage()),
+                      );
+                    },
+                    child: const Text('OK'),
+                  ),
+                ],
+              );
+            },
+          );
+        },
+        onFailure: (failure){
 
+        });
+  // Navigator.push(context, MaterialPageRoute(builder: (context)=>PaymentPage()));
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Proceeding to payment')),
     );
@@ -82,17 +186,27 @@ class _CheckoutPageState extends State<CheckoutPage> {
         child: ListView(
           children: [
             TextField(
-              controller: nameController,
+              controller: phoneController,
               decoration: const InputDecoration(
-                labelText: 'Name',
+                labelText: 'Phone Number',
                 border: OutlineInputBorder(),
               ),
+              keyboardType: TextInputType.phone,
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: emailController,
+              decoration: const InputDecoration(
+                labelText: 'Email',
+                border: OutlineInputBorder(),
+              ),
+              keyboardType: TextInputType.emailAddress,
             ),
             const SizedBox(height: 16),
             TextField(
               controller: addressController,
               decoration: const InputDecoration(
-                labelText: 'Address',
+                labelText: 'Additional Address',
                 border: OutlineInputBorder(),
               ),
             ),
@@ -106,13 +220,68 @@ class _CheckoutPageState extends State<CheckoutPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Current Address:',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
+                  const Text('Current Address:', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8),
                   Text(currentAddress.isEmpty ? 'Fetching address...' : currentAddress),
                 ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            DropdownButtonFormField<PaymentMethod>(
+              value: selectedPaymentMethod,
+              items: PaymentMethod.values.map((method) {
+                return DropdownMenuItem(
+                  value: method,
+                  child: Text(method.name.toUpperCase()),
+                );
+              }).toList(),
+              onChanged: (method) {
+                setState(() {
+                  selectedPaymentMethod = method;
+                });
+              },
+              decoration: const InputDecoration(
+                labelText: 'Select Payment Method',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 20),
+            const Text('Cart Items:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: DataTable(
+                columns: const [
+                  DataColumn(label: Text('Image')),
+                  DataColumn(label: Text('Product')),
+                  DataColumn(label: Text('Price')),
+                ],
+                rows: cartItems.map((item) {
+                  return DataRow(cells: [
+                    DataCell(Image.network(item['image'], width: 50, height: 50)),
+                    DataCell(Text(item['name'])),
+                    DataCell(Text('Rs.${item['price']}')),
+                  ]);
+                }).toList(),
+              ),
+            ),
+            Align(
+              alignment: Alignment.centerRight,
+              child: Padding(
+                padding: const EdgeInsets.only(top: 16.0),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      "Total: ",
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      "Rs.${widget.price.toStringAsFixed(2)}",
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
               ),
             ),
             const SizedBox(height: 20),

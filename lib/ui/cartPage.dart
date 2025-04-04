@@ -5,8 +5,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'checkoutPage.dart';
 
 class CartPage extends StatefulWidget {
-
-
   @override
   State<CartPage> createState() => _CartPageState();
 }
@@ -43,7 +41,6 @@ class _CartPageState extends State<CartPage> {
     for (var item in cartItems) {
       double price = double.tryParse(item['price'].toString()) ?? 0.0;
       totalPrice += price;
-      /// totalPrice = totalPrice+price;
     }
   }
 
@@ -65,7 +62,6 @@ class _CartPageState extends State<CartPage> {
   }
 
   void checkout() {
-
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -78,8 +74,11 @@ class _CartPageState extends State<CartPage> {
           ),
           TextButton(
             onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context)=>CheckoutPage()));
-
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => CheckoutPage(price: totalPrice)),
+              );
             },
             child: const Text('Proceed'),
           ),
@@ -92,7 +91,7 @@ class _CartPageState extends State<CartPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title:  Text("Cart Page"),
+        title: const Text("Cart Page"),
         actions: [
           IconButton(
             icon: const Icon(Icons.delete),
@@ -108,17 +107,18 @@ class _CartPageState extends State<CartPage> {
                 : ListView.builder(
               itemCount: cartItems.length,
               itemBuilder: (context, index) {
+                final item = cartItems[index];
                 return Card(
-                  margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: ListTile(
                     leading: Image.network(
-                      cartItems[index]['image'],
+                      item['image'],
                       width: 50,
                       height: 50,
                       fit: BoxFit.cover,
                     ),
-                    title: Text(cartItems[index]['name']),
-                    subtitle: Text('Rs.${cartItems[index]['price']}'),
+                    title: Text(item['name']),
+                    subtitle: Text('Rs.${item['price']}'),
                     trailing: IconButton(
                       icon: const Icon(Icons.delete, color: Colors.red),
                       onPressed: () => removeCartItem(index),

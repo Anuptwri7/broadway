@@ -17,6 +17,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     loadCartItems();
+
   }
 
   final List<String> images = [

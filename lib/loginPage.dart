@@ -58,7 +58,17 @@ class _LoginPageState extends State<LoginPage> {
     }
     return response;
   }
-
+@override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    Future.delayed(const Duration(seconds: 3), () {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => HomePage()),
+      );
+    });
+  }
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -147,6 +157,10 @@ class _LoginPageState extends State<LoginPage> {
                     ),
 
                 ),
+                const SizedBox(height: 50),
+                Checkbox(value: true, onChanged: (value){
+
+                }),
                 const SizedBox(height: 50),
                  Align(
                    alignment: Alignment.centerRight,
