@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:classboradway/ui/productDetailPage.dart';
 import 'package:flutter/material.dart';
@@ -13,12 +14,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  @override
-  void initState() {
-    super.initState();
-    loadCartItems();
-
-  }
+  final TextEditingController searchController = TextEditingController();
 
   final List<String> images = [
     'https://www.w3schools.com/w3images/lights.jpg',
@@ -29,13 +25,13 @@ class _HomePageState extends State<HomePage> {
   final List<Map<String, dynamic>> products = [
     {
       'image': 'https://www.w3schools.com/w3images/lights.jpg',
-      'name': 'Bag 1',
+      'name': 'Camel',
       'price': 25.0,
       'description': 'This is a beautiful bag, perfect for casual outings.'
     },
     {
       'image': 'https://www.w3schools.com/w3images/mountains.jpg',
-      'name': 'Bag 2',
+      'name': 'Gucchi',
       'price': 30.0,
       'description': 'A stylish bag suitable for both office and casual wear.'
     },
@@ -48,6 +44,14 @@ class _HomePageState extends State<HomePage> {
   ];
 
   List<Map<String, dynamic>> cartItems = [];
+  List<Map<String, dynamic>> filteredProducts = [];
+
+  @override
+  void initState() {
+    super.initState();
+    loadCartItems();
+    filteredProducts = products;
+  }
 
   Future<void> loadCartItems() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -75,6 +79,33 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         elevation: 0,
         automaticallyImplyLeading: false,
+        backgroundColor: Colors.teal,
+        title: TextField(
+          controller: searchController,
+          decoration: const InputDecoration(
+            hintText: 'Search products...',
+            hintStyle: TextStyle(color: Colors.white70),
+            border: InputBorder.none,
+          ),
+          style: const TextStyle(color: Colors.white),
+          onChanged: (value) {
+            setState(() {
+
+
+              filteredProducts = products.where((product) {
+                final nameMatch = product['name']
+                    .toLowerCase()
+                    .contains(value.toLowerCase());
+
+                final priceMatch = double.tryParse(value) != null &&
+                    product['price'].toString().contains(value);
+
+                return nameMatch || priceMatch;
+              }).toList();
+
+            });
+          },
+        ),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 16.0),
@@ -91,7 +122,7 @@ class _HomePageState extends State<HomePage> {
                 ),
                 if (cartItems.isNotEmpty)
                   Positioned(
-                    right:4,
+                    right: 4,
                     top: 1,
                     child: Container(
                       padding: const EdgeInsets.all(4),
@@ -150,22 +181,23 @@ class _HomePageState extends State<HomePage> {
               height: 200,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
-                itemCount: products.length,
+                itemCount: filteredProducts.length,
                 itemBuilder: (context, index) {
+                  final product = filteredProducts[index];
                   return GestureDetector(
                     onTap: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => ProductDetailPage(product: products[index]),
+                          builder: (context) => ProductDetailPage(product: product),
                         ),
                       );
                     },
                     child: ProductCard(
-                      image: products[index]['image'],
-                      name: products[index]['name'],
-                      price: products[index]['price'],
-                      onAddToCart: () => addToCart(products[index]),
+                      image: product['image'],
+                      name: product['name'],
+                      price: product['price'],
+                      onAddToCart: () => addToCart(product),
                     ),
                   );
                 },
