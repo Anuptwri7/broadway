@@ -2,9 +2,11 @@ import 'dart:convert';
 import 'dart:developer';
 import 'package:classboradway/ui/forgetPassword.dart';
 import 'package:classboradway/ui/homepage.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -16,7 +18,7 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-
+  bool isLoading = false;
   bool _obsecure = true;
 
   void _login() {
@@ -28,11 +30,16 @@ class _LoginPageState extends State<LoginPage> {
 
       return;
     }
+    setState(() {
+      isLoading = true;
+    });
     postLogin();
 
   }
 
   Future postLogin() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
     final response = await http.post(
         Uri.parse('https://api.sarbamfoods.com/accounts/login/'),
         headers: {
@@ -45,8 +52,16 @@ class _LoginPageState extends State<LoginPage> {
         }));
 
     if(response.statusCode==200){
+      setState(() {
+        isLoading = false;
+      });
       Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>HomePage()));
     }else{
+
+      _passwordController.clear();
+      setState(() {
+        isLoading = false;
+      });
       Fluttertoast.showToast(
           msg: "Invalid credentials",
           toastLength: Toast.LENGTH_SHORT,
@@ -62,12 +77,7 @@ class _LoginPageState extends State<LoginPage> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    Future.delayed(const Duration(seconds: 3), () {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => HomePage()),
-      );
-    });
+
   }
   @override
   Widget build(BuildContext context) {
@@ -76,10 +86,14 @@ class _LoginPageState extends State<LoginPage> {
         body: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20,vertical: 80),
           child: SingleChildScrollView(
-            child: Column(
+            child: isLoading==true?Center(
+              child: SpinKitFadingCircle(
+                color: Color(0xffBF1E2E),
+                size: 50.0,
+              ),
+            ):Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 60),
                 const Text(
                   "Welcome",
                   style: TextStyle(fontSize: 60, fontWeight: FontWeight.bold),

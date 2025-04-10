@@ -65,13 +65,30 @@ class _HomePageState extends State<HomePage> {
   Future<void> addToCart(Map<String, dynamic> product) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     List<String> cart = prefs.getStringList('cart') ?? [];
-    cart.add(jsonEncode(product));
-    await prefs.setStringList('cart', cart);
+
+    List<Map<String, dynamic>> cartList =
+    cart.map((item) => jsonDecode(item) as Map<String, dynamic>).toList();
+
+    int index = cartList.indexWhere((item) => item['name'] == product['name']);
+    log("got index:"+index.toString());
+    if (index != -1) {
+      cartList[index]['qty'] = (cartList[index]['qty'] ?? 1) + 1;
+    } else {
+      product['qty'] = 1;
+      cartList.add(product);
+    }
+    await prefs.setStringList(
+      'cart',
+      cartList.map((item) => jsonEncode(item)).toList(),
+    );
+
     loadCartItems();
+
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Added to cart!')),
     );
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -90,8 +107,6 @@ class _HomePageState extends State<HomePage> {
           style: const TextStyle(color: Colors.white),
           onChanged: (value) {
             setState(() {
-
-
               filteredProducts = products.where((product) {
                 final nameMatch = product['name']
                     .toLowerCase()
@@ -150,6 +165,7 @@ class _HomePageState extends State<HomePage> {
           )
         ],
       ),
+
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Column(

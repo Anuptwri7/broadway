@@ -35,6 +35,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
     final String serviceId = 'service_al7vazj';
     final String templateId = 'template_flcr12v';
     final String userId = 'oPGEMtN0yn6uz_g1n';
+    SharedPreferences preferences  =await SharedPreferences.getInstance();
 
     final url = Uri.parse('https://api.emailjs.com/api/v1.0/email/send');
 
@@ -72,6 +73,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
     );
 
     if (response.statusCode == 200) {
+      preferences.remove("cart");
+
       print('Email sent successfully!');
     } else {
       print('Failed to send email: ${response.body}');
