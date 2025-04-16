@@ -5,6 +5,10 @@ import 'package:classboradway/ui/productDetailPage.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'cartPage.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
+
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -50,7 +54,58 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     loadCartItems();
+    loadProfileImage();
     filteredProducts = products;
+  }
+  String? _imagePath;
+  Future<void> loadProfileImage() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _imagePath = prefs.getString('profile_image');
+    });
+  }
+
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final XFile? pickedFile = await showModalBottomSheet<XFile?>(
+      context: context,
+      builder: (_) => BottomSheet(
+        onClosing: () {},
+        builder: (_) => Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.camera),
+              title: const Text("Take Photo"),
+              onTap: () async {
+                final photo = await picker.pickImage(source: ImageSource.camera);
+                Navigator.pop(context, photo);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text("Choose from Gallery"),
+              onTap: () async {
+                final gallery = await picker.pickImage(source: ImageSource.gallery);
+                Navigator.pop(context, gallery);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (pickedFile != null) {
+      final directory = await getApplicationDocumentsDirectory();
+      final savedImage = await File(pickedFile.path).copy('${directory.path}/${DateTime.now().millisecondsSinceEpoch}.png');
+
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setString('profile_image', savedImage.path);
+
+      setState(() {
+        _imagePath = savedImage.path;
+      });
+    }
   }
 
   Future<void> loadCartItems() async {
@@ -95,7 +150,7 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
-        automaticallyImplyLeading: false,
+        automaticallyImplyLeading: true,
         backgroundColor: Colors.teal,
         title: TextField(
           controller: searchController,
@@ -164,6 +219,59 @@ class _HomePageState extends State<HomePage> {
             ),
           )
         ],
+      ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            DrawerHeader(
+              decoration: const BoxDecoration(color: Colors.teal),
+              child: Center(
+                child: Stack(
+                  children: [
+                    CircleAvatar(
+                      radius: 50,
+                      backgroundImage: _imagePath != null
+                          ? FileImage(File(_imagePath!))
+                          : const AssetImage('assets/icon.jpg') ,
+                    ),
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: GestureDetector(
+                        onTap: _pickImage,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.grey),
+                          ),
+                          padding: const EdgeInsets.all(4),
+                          child: const Icon(Icons.camera_alt, size: 20),
+                        ),
+                      ),
+                    )
+                  ],
+                ),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.home),
+              title: const Text("Home"),
+              onTap: () => Navigator.pop(context),
+            ),
+            ListTile(
+              leading: const Icon(Icons.shopping_cart),
+              title: const Text("Cart"),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => CartPage()),
+                ).then((_) => loadCartItems());
+              },
+            ),
+          ],
+        ),
       ),
 
       body: Padding(

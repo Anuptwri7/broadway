@@ -34,6 +34,7 @@ class CheckoutPage extends StatefulWidget {
 }
 
 class _CheckoutPageState extends State<CheckoutPage> {
+
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController addressController = TextEditingController();
@@ -47,7 +48,6 @@ class _CheckoutPageState extends State<CheckoutPage> {
   void initState() {
     super.initState();
     getCurrentLocation();
-    // Generate order ID
     orderId = DateTime.now().millisecondsSinceEpoch.toString();
   }
 
@@ -56,7 +56,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
     final formatter = DateFormat('dd-MM-yyyy hh:mm a');
     final currentDate = formatter.format(DateTime.now());
 
-    // Create PDF
+
     pdf.addPage(
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
@@ -170,14 +170,14 @@ class _CheckoutPageState extends State<CheckoutPage> {
       ),
     );
 
-    // Save PDF
+
     try {
       final directory = await getExternalStorageDirectory() ?? await getApplicationDocumentsDirectory();
       final path = '${directory.path}/Invoice_$orderId.pdf';
       final file = File(path);
       await file.writeAsBytes(await pdf.save());
 
-      // Open the PDF
+
       OpenFile.open(path);
 
       ScaffoldMessenger.of(context).showSnackBar(

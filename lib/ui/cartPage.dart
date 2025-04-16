@@ -59,7 +59,6 @@ class _CartPageState extends State<CartPage> {
   Future<void> removeCartItem(int index) async {
     setState(() {
       cartItems.removeAt(index);
-      // Rebuild checked items map
       Map<int, bool> newCheckedItems = {};
       for (int i = 0; i < cartItems.length; i++) {
         newCheckedItems[i] = i < index ? checkedItems[i]! : checkedItems[i + 1] ?? false;
@@ -98,7 +97,6 @@ class _CartPageState extends State<CartPage> {
   }
 
   void checkout() {
-    // Filter checked items for checkout
     List<Map<String, dynamic>> selectedItems = [];
     for (int i = 0; i < cartItems.length; i++) {
       if (checkedItems[i] == true) {
@@ -174,6 +172,7 @@ class _CartPageState extends State<CartPage> {
                         onChanged: (bool? value) {
                           setState(() {
                             log(index.toString());
+
                             checkedItems[index] = value ?? false;
                             calculateTotalPrice();
                           });
@@ -249,6 +248,9 @@ class _CartPageState extends State<CartPage> {
                   ),
                   ElevatedButton(
                     onPressed: checkout,
+                    // onPressed: (){
+                    //   log(checkedItems.toString());
+                    // },
                     child: const Text('Checkout'),
                   ),
                 ],
