@@ -28,6 +28,10 @@ environment:
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
 dependencies:
+  pdf: ^3.10.4
+  path_provider: ^2.1.1
+  open_file: ^3.3.2
+  intl: ^0.18.1
   khalti_flutter:
   geocoding:
   geolocator:

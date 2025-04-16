@@ -72,7 +72,7 @@ class _HomePageState extends State<HomePage> {
     int index = cartList.indexWhere((item) => item['name'] == product['name']);
     log("got index:"+index.toString());
     if (index != -1) {
-      cartList[index]['qty'] = (cartList[index]['qty'] ?? 1) + 1;
+      cartList[index]['qty'] = (cartList[index]['qty']??1) + 1;
     } else {
       product['qty'] = 1;
       cartList.add(product);
@@ -168,58 +168,83 @@ class _HomePageState extends State<HomePage> {
 
       body: Padding(
         padding: const EdgeInsets.all(8.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            CarouselSlider(
-              options: CarouselOptions(
-                height: 200,
-                enlargeCenterPage: true,
-                autoPlay: true,
-                aspectRatio: 16 / 9,
-                viewportFraction: 0.8,
-              ),
-              items: images.map((imageUrl) {
-                return Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 8),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
-                    image: DecorationImage(
-                      image: NetworkImage(imageUrl),
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: 20),
-            SizedBox(
-              height: 200,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: filteredProducts.length,
-                itemBuilder: (context, index) {
-                  final product = filteredProducts[index];
-                  return GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ProductDetailPage(product: product),
-                        ),
-                      );
-                    },
-                    child: ProductCard(
-                      image: product['image'],
-                      name: product['name'],
-                      price: product['price'],
-                      onAddToCart: () => addToCart(product),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CarouselSlider(
+                options: CarouselOptions(
+                  height: 200,
+                  enlargeCenterPage: true,
+                  autoPlay: true,
+                  aspectRatio: 16 / 9,
+                  viewportFraction: 0.8,
+                ),
+                items: images.map((imageUrl) {
+                  return Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 8),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      image: DecorationImage(
+                        image: NetworkImage(imageUrl),
+                        fit: BoxFit.cover,
+                      ),
                     ),
                   );
-                },
+                }).toList(),
               ),
-            ),
-          ],
+              const SizedBox(height: 20),
+              SizedBox(
+                height: 200,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: filteredProducts.length,
+                  itemBuilder: (context, index) {
+                    final product = filteredProducts[index];
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ProductDetailPage(product: product),
+                          ),
+                        );
+                      },
+                      child: ProductCard(
+                        image: product['image'],
+                        name: product['name'],
+                        price: product['price'],
+                        onAddToCart: () => addToCart(product),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              SizedBox(height: 50,),
+              Row(
+                children: [
+                  Container(
+                    height:  MediaQuery.of(context).size.height/4,
+                    width: MediaQuery.of(context).size.width/2.2,
+                    color: Colors.red,
+                  ),
+                  SizedBox(width: 10,),
+                  Container(
+                    height:  MediaQuery.of(context).size.height/4,
+                    width: MediaQuery.of(context).size.width/2.2,
+                    color: Colors.red,
+                  ),
+                  // SizedBox(width: 10,),
+                  // Container(
+                  //   height:  MediaQuery.of(context).size.height/7,
+                  //   width: MediaQuery.of(context).size.width/5,
+                  //   color: Colors.red,
+                  // ),
+                ],
+              ),
+          
+            ],
+          ),
         ),
       ),
     );
@@ -243,7 +268,7 @@ class ProductCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 150,
+      width: MediaQuery.of(context).size.width/3,
       margin: const EdgeInsets.symmetric(horizontal: 8),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10),
