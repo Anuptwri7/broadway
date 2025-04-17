@@ -1,12 +1,16 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'package:classboradway/mainPage.dart';
 import 'package:classboradway/ui/forgetPassword.dart';
 import 'package:classboradway/ui/homepage.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:flutter_toggle_tab/flutter_toggle_tab.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'buyerApp/mainPage.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -20,6 +24,13 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _passwordController = TextEditingController();
   bool isLoading = false;
   bool _obsecure = true;
+  int _tabTextIndexSelected = 0;
+  List<DataTab> get _listTextTabToggle => [
+    DataTab(title: "Buyer"),
+    DataTab(title: "Seller"),
+  ];
+
+
 
   void _login() {
 
@@ -55,7 +66,8 @@ class _LoginPageState extends State<LoginPage> {
       setState(() {
         isLoading = false;
       });
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>HomePage()));
+      _tabTextIndexSelected==1?  Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>Mainpage())):
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>MainPage()));
     }else{
 
       _passwordController.clear();
@@ -102,7 +114,41 @@ class _LoginPageState extends State<LoginPage> {
                   "To the login screen",
                   style: TextStyle(fontSize: 20, color: Colors.grey.withOpacity(0.8)),
                 ),
+                const SizedBox(height: 30),
+                FlutterToggleTab(
+                  width: 90,
+                  borderRadius: 30,
+                  height: 50,
+                  selectedIndex: _tabTextIndexSelected,
+                  selectedBackgroundColors: [
+                    const Color(0xffBF1E2E),
+                    const Color(0xffBF1E2E)
+                  ],
+                  selectedTextStyle: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                  ),
+                  unSelectedTextStyle: const TextStyle(
+                    color: Colors.black87,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  unSelectedBackgroundColors: [
+                    Colors.white,
+                    Colors.white,
+                  ],
+                  dataTabs: _listTextTabToggle,
+                  selectedLabelIndex: (index) {
+                    setState(() {
+                      _tabTextIndexSelected = index;
+                    });
+                  },
+                  isScroll: false,
+                ),
+
                 const SizedBox(height: 100),
+
                 TextFormField(
                   controller: _emailController,
                   cursorColor: Colors.red,

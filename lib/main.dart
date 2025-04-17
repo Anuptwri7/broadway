@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:khalti_flutter/khalti_flutter.dart';
 import 'package:classboradway/ui/homepage.dart';
 import 'loginPage.dart';
+import 'mainPage.dart';
 
 void main() async {
   runApp(
@@ -23,7 +24,7 @@ class MyApp extends StatelessWidget {
           theme: ThemeData(
             primarySwatch: Colors.red,
           ),
-          home: const HomePage(),
+          home:  LoginPage(),
           navigatorKey: e,
           supportedLocales: const [
             Locale('en', 'US'),

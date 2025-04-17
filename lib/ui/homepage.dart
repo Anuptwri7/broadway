@@ -27,24 +27,7 @@ class _HomePageState extends State<HomePage> {
   ];
 
   final List<Map<String, dynamic>> products = [
-    {
-      'image': 'https://www.w3schools.com/w3images/lights.jpg',
-      'name': 'Camel',
-      'price': 25.0,
-      'description': 'This is a beautiful bag, perfect for casual outings.'
-    },
-    {
-      'image': 'https://www.w3schools.com/w3images/mountains.jpg',
-      'name': 'Gucchi',
-      'price': 30.0,
-      'description': 'A stylish bag suitable for both office and casual wear.'
-    },
-    {
-      'image': 'https://www.w3schools.com/w3images/forest.jpg',
-      'name': 'Bag 3',
-      'price': 40.0,
-      'description': 'A premium quality bag, designed for travel and adventure.'
-    },
+
   ];
 
   List<Map<String, dynamic>> cartItems = [];
@@ -55,7 +38,21 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     loadCartItems();
     loadProfileImage();
+    loadUserProducts();
     filteredProducts = products;
+  }
+  Future<void> loadUserProducts() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userProductStrings = prefs.getStringList("user_products") ?? [];
+
+    final userProductMaps = userProductStrings
+        .map((json) => jsonDecode(json) as Map<String, dynamic>)
+        .toList();
+
+    setState(() {
+      products.addAll(userProductMaps);
+      filteredProducts = products;
+    });
   }
   String? _imagePath;
   Future<void> loadProfileImage() async {
@@ -130,6 +127,7 @@ class _HomePageState extends State<HomePage> {
       cartList[index]['qty'] = (cartList[index]['qty']??1) + 1;
     } else {
       product['qty'] = 1;
+      cartList.add(product);
       cartList.add(product);
     }
     await prefs.setStringList(
@@ -392,7 +390,7 @@ class ProductCard extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Image.network(image, height: 80, width: 80, fit: BoxFit.cover),
+          Image.file( File(image!), height: 80, width: 80, fit: BoxFit.cover),
           const SizedBox(height: 8),
           Text(name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
           Text('Rs.${price.toStringAsFixed(2)}',
