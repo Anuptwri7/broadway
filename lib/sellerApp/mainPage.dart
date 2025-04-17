@@ -1,7 +1,7 @@
 import 'dart:developer';
 import 'dart:ui';
 
-import 'package:classboradway/buyerApp/ui/homePage.dart';
+import 'package:classboradway/sellerApp/ui/homePage.dart';
 import 'package:classboradway/ui/cartPage.dart';
 import 'package:classboradway/ui/homepage.dart';
 import 'package:flutter/material.dart';
