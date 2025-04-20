@@ -1,142 +1,139 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class AddProductPage extends StatefulWidget {
-  const AddProductPage({super.key});
+import 'addproductPage.dart';
+
+
+class ProductListPage extends StatefulWidget {
+  const ProductListPage({super.key});
 
   @override
-  State<AddProductPage> createState() => _AddProductPageState();
+  State<ProductListPage> createState() => _ProductListPageState();
 }
 
-class _AddProductPageState extends State<AddProductPage> {
-  final TextEditingController nameController = TextEditingController();
-  final TextEditingController priceController = TextEditingController();
-  final TextEditingController descriptionController = TextEditingController();
-  File? _imageFile;
+class _ProductListPageState extends State<ProductListPage> {
+  List<Map<String, dynamic>> products = [];
 
-  Future<void> _pickImage() async {
-    final picker = ImagePicker();
-
-    final XFile? pickedFile = await showModalBottomSheet<XFile?>(
-      context: context,
-      builder: (_) => BottomSheet(
-        onClosing: () {},
-        builder: (_) => Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.camera_alt),
-              title: const Text('Take Photo'),
-              onTap: () async {
-                final photo = await picker.pickImage(source: ImageSource.camera);
-                Navigator.pop(context, photo);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.photo_library),
-              title: const Text('Choose from Gallery'),
-              onTap: () async {
-                final gallery = await picker.pickImage(source: ImageSource.gallery);
-                Navigator.pop(context, gallery);
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-
-    if (pickedFile != null) {
-      final directory = await getApplicationDocumentsDirectory();
-      final savedImage = await File(pickedFile.path).copy(
-        '${directory.path}/${DateTime.now().millisecondsSinceEpoch}.png',
-      );
-
-      setState(() {
-        _imageFile = savedImage;
-      });
-    }
+  @override
+  void initState() {
+    super.initState();
+    loadProducts();
   }
 
-  Future<void> saveProduct() async {
+  Future<void> loadProducts() async {
     final prefs = await SharedPreferences.getInstance();
-    final name = nameController.text.trim();
-    final price = double.tryParse(priceController.text) ?? 0.0;
-    final description = descriptionController.text.trim();
+    List<String> productStrings = prefs.getStringList("user_products") ?? [];
 
-    if (name.isEmpty || price == 0.0 || _imageFile == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please fill all fields properly")),
-      );
-      return;
-    }
+    setState(() {
+      products = productStrings
+          .map((e) => jsonDecode(e) as Map<String, dynamic>)
+          .toList();
+    });
+  }
 
-    Map<String, dynamic> newProduct = {
-      "name": name,
-      "price": price,
-      "description": description,
-      "image": _imageFile!.path,
-    };
+  Future<void> approveProduct(int index) async {
+    setState(() {
+      products[index]['isApproved'] = true;
+    });
 
-    List<String> existingProducts = prefs.getStringList("user_products") ?? [];
-    existingProducts.add(jsonEncode(newProduct));
-    await prefs.setStringList("user_products", existingProducts);
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setStringList(
+      "user_products",
+      products.map((e) => jsonEncode(e)).toList(),
+    );
+  }
+  Future<void> cancelApproveProduct(int index) async {
+    setState(() {
+      products[index]['isApproved'] = false;
+    });
 
-
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setStringList(
+      "user_products",
+      products.map((e) => jsonEncode(e)).toList(),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    // You can filter approved products like this:
+    final approvedProducts = products.where((p) => p['isApproved'] == true).toList();
+
     return Scaffold(
-      appBar: AppBar(title: const Text("Add New Product")),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            GestureDetector(
-              onTap: _pickImage,
-              child: _imageFile != null
-                  ? ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: Image.file(_imageFile!, height: 150, width: double.infinity, fit: BoxFit.cover),
+      appBar: AppBar(
+        title: const Text("My Products"),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add),
+            onPressed: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const AddProductPage()),
+              );
+              loadProducts();
+            },
+          )
+        ],
+      ),
+      body: products.isEmpty
+          ? const Center(child: Text("No products added yet."))
+          : ListView.builder(
+        padding: const EdgeInsets.all(8),
+        itemCount: products.length,
+        itemBuilder: (context, index) {
+          final product = products[index];
+          final isApproved = product['isApproved'] == true;
+          return Card(
+            margin: const EdgeInsets.symmetric(vertical: 8),
+            color: isApproved ? Colors.white : Colors.yellow[100],
+            child: ListTile(
+              leading: product['image'] != null
+                  ? Image.file(
+                File(product['image']),
+                width: 50,
+                height: 50,
+                fit: BoxFit.cover,
               )
-                  : Container(
-                height: 150,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Center(
-                  child: Text("Tap to select an image"),
-                ),
+                  : const Icon(Icons.image),
+              title: Text(product['name']),
+              subtitle: Text("Rs. ${product['price']}"),
+              isThreeLine: true,
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (!isApproved)
+                    IconButton(
+                      icon: const Icon(Icons.check_circle, color: Colors.green),
+                      tooltip: "Approve",
+                      onPressed: () => approveProduct(index),
+                    ),
+                  if(isApproved)
+                    IconButton(
+                      icon: const Icon(Icons.cancel, color: Colors.green),
+                      tooltip: "Approve",
+                      onPressed: () => cancelApproveProduct(index),
+                    ),
+                  IconButton(
+                    icon: const Icon(Icons.delete),
+                    onPressed: () async {
+                      products.removeAt(index);
+                      final prefs = await SharedPreferences.getInstance();
+                      prefs.setStringList(
+                        "user_products",
+                        products.map((e) => jsonEncode(e)).toList(),
+                      );
+                      loadProducts();
+                    },
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: nameController,
-              decoration: const InputDecoration(labelText: "Product Name"),
-            ),
-            TextField(
-              controller: priceController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: "Price"),
-            ),
-            TextField(
-              controller: descriptionController,
-              decoration: const InputDecoration(labelText: "Description"),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: saveProduct,
-              child: const Text("Save Product"),
-            )
-          ],
-        ),
+          );
+        },
       ),
     );
   }
 }
+

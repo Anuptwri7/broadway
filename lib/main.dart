@@ -1,3 +1,4 @@
+import 'package:classboradway/sellerApp/mainPage.dart';
 import 'package:flutter/material.dart';
 import 'package:khalti_flutter/khalti_flutter.dart';
 import 'package:classboradway/ui/homepage.dart';
@@ -24,7 +25,7 @@ class MyApp extends StatelessWidget {
           theme: ThemeData(
             primarySwatch: Colors.red,
           ),
-          home:  LoginPage(),
+          home:  MainPage(),
           navigatorKey: e,
           supportedLocales: const [
             Locale('en', 'US'),

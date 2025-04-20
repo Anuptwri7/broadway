@@ -17,6 +17,7 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
+
 class _HomePageState extends State<HomePage> {
   final TextEditingController searchController = TextEditingController();
 
@@ -47,13 +48,16 @@ class _HomePageState extends State<HomePage> {
 
     final userProductMaps = userProductStrings
         .map((json) => jsonDecode(json) as Map<String, dynamic>)
+        .where((product) => product['isApproved'] == true)
         .toList();
 
     setState(() {
+      products.clear();
       products.addAll(userProductMaps);
       filteredProducts = products;
     });
   }
+
   String? _imagePath;
   Future<void> loadProfileImage() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
