@@ -42,16 +42,42 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                     ),
                   ],
                 ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(15),
-                  child: Image.file(
-                    File(widget.product['image']),
-                    height: 250,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
+                child: GestureDetector(
+                  onTap: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) {
+                        return Dialog(
+                          insetPadding: EdgeInsets.all(10),
+                          backgroundColor: Colors.transparent,
+                          child: InteractiveViewer(
+                            panEnabled: true,
+                            minScale: 1,
+                            maxScale: 4,
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(15),
+                              child: Image.file(
+                                File(widget.product['image']),
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(15),
+                    child: Image.file(
+                      File(widget.product['image']),
+                      height: 250,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                    ),
                   ),
                 ),
               ),
+
               const SizedBox(height: 20),
               Text(
                 widget.product['name'],
@@ -68,7 +94,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
               ),
               const SizedBox(height: 16),
               Text(
-                widget.product['description'],
+                "",
                 style: const TextStyle(
                   fontSize: 16,
                   color: Colors.black87,
