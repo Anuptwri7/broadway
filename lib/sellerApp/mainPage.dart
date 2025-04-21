@@ -6,6 +6,7 @@ import 'package:classboradway/ui/cartPage.dart';
 import 'package:classboradway/ui/homepage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 
 
 
@@ -30,10 +31,12 @@ class _MainPageState extends State<MainPage> {
     return [
       ProductListPage(),
       CartPage(),
-      HomePage(),
+      Container(),
       HomePage(),
     ];
   }
+
+
 
   void _onTabTapped(int index) {
 
