@@ -1,4 +1,5 @@
 import 'package:classboradway/sellerApp/mainPage.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:khalti_flutter/khalti_flutter.dart';
 import 'package:classboradway/ui/homepage.dart';
@@ -6,11 +7,10 @@ import 'loginPage.dart';
 import 'mainPage.dart';
 
 void main() async {
-  runApp(
-    MyApp(),
-  );
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  runApp(MyApp());
 }
-
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -25,7 +25,7 @@ class MyApp extends StatelessWidget {
           theme: ThemeData(
             primarySwatch: Colors.red,
           ),
-          home:  MainPage(),
+          home:  LoginPage(),
           navigatorKey: e,
           supportedLocales: const [
             Locale('en', 'US'),

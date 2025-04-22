@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "762591148287",
+    "project_id": "classbroadway-aaabe",
+    "storage_bucket": "classbroadway-aaabe.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:762591148287:android:5d5093bebf64dd550574ca",
+        "android_client_info": {
+          "package_name": "com.example.classboradway"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBH-ySajG_DnJmkYUbCKsjurHPzjD318-Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

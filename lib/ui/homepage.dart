@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../integration/googleLogin.dart';
 import 'cartPage.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
@@ -21,6 +22,7 @@ class HomePage extends StatefulWidget {
 
 
 class _HomePageState extends State<HomePage> {
+  final AuthService _authService = AuthService();
     TextEditingController searchController = TextEditingController();
 
   final List<String> images = [
@@ -323,6 +325,14 @@ class _HomePageState extends State<HomePage> {
                 ).then((_) => loadCartItems());
               },
             ),
+            ListTile(
+              leading: const Icon(Icons.logout),
+              title: const Text("Logout"),
+              onTap: () {
+               _authService.signOut(context);
+              },
+            ),
+
           ],
         ),
       ),
