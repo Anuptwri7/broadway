@@ -1,13 +1,16 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'package:classboradway/mainPage.dart';
 import 'package:classboradway/ui/forgetPassword.dart';
 import 'package:classboradway/ui/homepage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:flutter_toggle_tab/flutter_toggle_tab.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
+import 'package:local_auth/local_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'integration/googleLogin.dart';
 import 'sellerApp/mainPage.dart';
@@ -27,6 +30,9 @@ class _LoginPageState extends State<LoginPage> {
   bool _obsecure = true;
   bool _rememberMe = true;
   int _tabTextIndexSelected = 0;
+  final LocalAuthentication auth = LocalAuthentication();
+  bool _canCheckBiometrics = false;
+  List<BiometricType> _availableBiometrics = [];
 
   List<DataTab> get _listTextTabToggle => [
     DataTab(title: "Buyer"),
@@ -43,7 +49,23 @@ class _LoginPageState extends State<LoginPage> {
     });
     postLogin();
   }
+  @override
+  void initState() {
+    super.initState();
 
+    _checkBiometrics();
+
+  }
+  Future<void> _checkBiometrics() async {
+    try {
+      _canCheckBiometrics = await auth.canCheckBiometrics;
+      _availableBiometrics = await auth.getAvailableBiometrics();
+      log("Available Biometrics: $_availableBiometrics");
+    } on PlatformException catch (e) {
+      debugPrint("Biometric error: $e");
+    }
+    setState(() {});
+  }
   Future postLogin() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     final response = await http.post(
@@ -163,19 +185,43 @@ class _LoginPageState extends State<LoginPage> {
                 const SizedBox(height: 30),
 
                 // Login Button
-                Center(
-                  child: SizedBox(
-                    height: 50,
-                    width: 180,
-                    child: ElevatedButton(
-                      onPressed: _login,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+                Row(
+                  children: [
+                    Expanded(
+                      flex: 3,
+                      child: SizedBox(
+                        height: 50,
+                        width: 180,
+                        child: ElevatedButton(
+                          onPressed: _login,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+                          ),
+                          child: const Text("Login", style: TextStyle(fontSize: 18, color: Colors.white)),
+                        ),
                       ),
-                      child: const Text("Login", style: TextStyle(fontSize: 18, color: Colors.white)),
                     ),
-                  ),
+                    SizedBox(width: 10,),
+                    Expanded(
+                      flex: 1,
+                      child: SizedBox(
+                        height: 50,
+                        // width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: _authenticateWithBiometrics,
+                          style: ElevatedButton.styleFrom(
+                            elevation: 0,
+                            backgroundColor: Colors.red,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10.0),
+                            ),
+                          ),
+                          child:  const Icon(Icons.fingerprint,color: Colors.white,),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
 
                 const SizedBox(height: 40),
@@ -280,4 +326,32 @@ class _LoginPageState extends State<LoginPage> {
       ),
     );
   }
-}
+  Future<void> _authenticateWithBiometrics() async {
+    try {
+      bool didAuthenticate = await auth.authenticate(
+        localizedReason: 'Please authenticate to login',
+        options: const AuthenticationOptions(
+          biometricOnly: false,
+          stickyAuth: true,
+        ),
+      );
+      if(didAuthenticate){
+        log("logged in");
+      }
+    } on PlatformException catch (e) {
+      if (e.code == 'LockedOut') {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              "Too many failed attempts. Please try again in 30 seconds.",
+              style: TextStyle(color: Colors.white),
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+        debugPrint(e.toString());
+      }
+    }
+
+  }}
+
