@@ -2,10 +2,12 @@ import 'dart:convert';
 import 'dart:developer';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:classboradway/ui/productDetailPage.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 import '../integration/googleLogin.dart';
 import 'cartPage.dart';
 import 'dart:io';
@@ -24,7 +26,9 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final AuthService _authService = AuthService();
     TextEditingController searchController = TextEditingController();
-
+  late YoutubePlayerController _controller;
+  List<String> videoIds = [];
+  String? selectedVideoId;
   final List<String> images = [
     'https://www.w3schools.com/w3images/lights.jpg',
     'https://www.w3schools.com/w3images/mountains.jpg',
@@ -37,14 +41,44 @@ class _HomePageState extends State<HomePage> {
 
   List<Map<String, dynamic>> cartItems = [];
   List<Map<String, dynamic>> filteredProducts = [];
+  Future<void> fetchVideos() async {
+    final snapshot = await FirebaseFirestore.instance.collection('videos').get();
+
+    final ids = <String>[];
+    for (var doc in snapshot.docs) {
+      final List<dynamic> videoList = doc['videoId'];
+      ids.addAll(videoList.map((e) => e.toString()));
+    }
+
+    setState(() {
+      videoIds = ids;
+      if (videoIds.isNotEmpty) {
+        selectedVideoId = videoIds.first;
+        _controller.loadVideoById(videoId: selectedVideoId!);
+      }
+    });
+  }
 
   @override
   void initState() {
     super.initState();
     loadCartItems();
+    fetchVideos();
     loadProfileImage();
     loadUserProducts();
     filteredProducts = products;
+    _controller = YoutubePlayerController(
+      params: YoutubePlayerParams(
+        mute: false,
+        showControls: true,
+        showFullscreenButton: true,
+      ),
+    );
+    _controller = YoutubePlayerController.fromVideoId(
+      videoId: 'VVin4wWjFtU',
+      autoPlay: false,
+      params: const YoutubePlayerParams(showFullscreenButton: true),
+    );
   }
 
   Future<void> _startScanning() async {
@@ -343,6 +377,30 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if (videoIds.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: DropdownButton<String>(
+                    isExpanded: true,
+                    value: selectedVideoId,
+                    items: videoIds.map((id) {
+                      return DropdownMenuItem(
+                        value: id,
+                        child: Text(id),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        selectedVideoId = value;
+                        _controller.loadVideoById(videoId: selectedVideoId!);
+                      });
+                    },
+                  ),
+                ),
+            YoutubePlayer(
+            controller: _controller,
+            aspectRatio: 16 / 9,
+          ),
               CarouselSlider(
                 options: CarouselOptions(
                   height: 200,

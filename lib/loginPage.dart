@@ -24,6 +24,7 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   final AuthService _authService = AuthService();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool isLoading = false;
@@ -52,9 +53,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   void initState() {
     super.initState();
-
     _checkBiometrics();
-
   }
   Future<void> _checkBiometrics() async {
     try {
@@ -286,6 +285,7 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                 ),
+
               ],
             ),
           ),

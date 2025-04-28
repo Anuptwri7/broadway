@@ -6,9 +6,7 @@ import 'package:classboradway/ui/homepage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-
 import 'package:shared_preferences/shared_preferences.dart';
-
 
 class Mainpage extends StatefulWidget {
    Mainpage({super.key});
@@ -24,7 +22,6 @@ class _MainpageState extends State<Mainpage> {
   @override
   void initState() {
     super.initState();
-
   }
 
 
@@ -38,15 +35,11 @@ class _MainpageState extends State<Mainpage> {
   }
 
   void _onTabTapped(int index) {
-
       _pageController.jumpToPage(index);
       setState(() {
         _currentIndex = index;
       });
-
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -82,7 +75,6 @@ class _MainpageState extends State<Mainpage> {
               icon: Icon(Icons.settings),
               label: "Settings",
             ),
-
             const BottomNavigationBarItem(
               icon: Icon(Icons.person_outline_rounded),
               label: "Profile",
@@ -103,7 +95,7 @@ class _MainpageState extends State<Mainpage> {
     return await showDialog<bool>(
       context: context,
       barrierDismissible: false,
-      barrierColor: Colors.black54, // Slightly darker overlay
+      barrierColor: Colors.black54,
       builder: (BuildContext context) {
         return Dialog(
           backgroundColor: backgroundColor,
@@ -117,7 +109,6 @@ class _MainpageState extends State<Mainpage> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Exit Icon in Circle
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
@@ -130,10 +121,7 @@ class _MainpageState extends State<Mainpage> {
                     size: 32,
                   ),
                 ),
-
                 const SizedBox(height: 24),
-
-                // Title
                 const Text(
                   'Exit App',
                   style: TextStyle(
@@ -142,10 +130,7 @@ class _MainpageState extends State<Mainpage> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-
                 const SizedBox(height: 16),
-
-                // Message
                 Text(
                   'Are you sure you want to exit the app?',
                   textAlign: TextAlign.center,
@@ -155,13 +140,9 @@ class _MainpageState extends State<Mainpage> {
                     height: 1.5,
                   ),
                 ),
-
                 const SizedBox(height: 32),
-
-                // Buttons
                 Row(
                   children: [
-                    // Cancel Button
                     Expanded(
                       child: TextButton(
                         onPressed: () => Navigator.of(context).pop(false),
@@ -181,10 +162,7 @@ class _MainpageState extends State<Mainpage> {
                         ),
                       ),
                     ),
-
                     const SizedBox(width: 16),
-
-                    // Exit Button
                     Expanded(
                       child: ElevatedButton(
                         onPressed: () => Navigator.of(context).pop(true),
