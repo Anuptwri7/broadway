@@ -43,8 +43,7 @@ class _HomePageState extends State<HomePage> {
   List<Map<String, dynamic>> filteredProducts = [];
   Future<void> fetchVideos() async {
     final snapshot = await FirebaseFirestore.instance.collection('videos').get();
-
-    final ids = <String>[];
+    List<String> ids =[];
     for (var doc in snapshot.docs) {
       final List<dynamic> videoList = doc['videoId'];
       ids.addAll(videoList.map((e) => e.toString()));
@@ -75,7 +74,7 @@ class _HomePageState extends State<HomePage> {
       ),
     );
     _controller = YoutubePlayerController.fromVideoId(
-      videoId: 'VVin4wWjFtU',
+      videoId: 'LtNbLer31fg',
       autoPlay: false,
       params: const YoutubePlayerParams(showFullscreenButton: true),
     );
@@ -377,27 +376,46 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (videoIds.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: DropdownButton<String>(
-                    isExpanded: true,
-                    value: selectedVideoId,
-                    items: videoIds.map((id) {
-                      return DropdownMenuItem(
-                        value: id,
-                        child: Text(id),
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        selectedVideoId = value;
-                        _controller.loadVideoById(videoId: selectedVideoId!);
-                      });
-                    },
+              Container(
+                height: 200,
+                width: 400,
+                child: GridView.builder(
+                  padding: EdgeInsets.all(8),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 8,
+                    mainAxisSpacing: 8,
+                    childAspectRatio: 16 / 9,
                   ),
+                  itemCount: videoIds.length,
+                  itemBuilder: (context, index) {
+                    final video = videoIds[index];
+                    return GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          selectedVideoId = video;
+                          log(selectedVideoId.toString());
+                          _controller.loadVideoById(videoId: selectedVideoId!);
+                        });
+                      },
+                      child: Column(
+                        children: [
+                          Expanded(
+                            child: Image.network(
+                              "https://img.youtube.com/vi/${videoIds[index]}/hqdefault.jpg",
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                            ),
+                          ),
+
+                        ],
+                      ),
+                    );
+                  },
                 ),
-            YoutubePlayer(
+              ),
+
+              YoutubePlayer(
             controller: _controller,
             aspectRatio: 16 / 9,
           ),

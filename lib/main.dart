@@ -25,7 +25,7 @@ class MyApp extends StatelessWidget {
           theme: ThemeData(
             primarySwatch: Colors.red,
           ),
-          home:  LoginPage(),
+          home:  HomePage(),
           navigatorKey: e,
           supportedLocales: const [
             Locale('en', 'US'),
