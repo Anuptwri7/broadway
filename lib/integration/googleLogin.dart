@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:classboradway/loginPage.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -8,7 +9,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn(
     scopes: [
       'email',
@@ -50,7 +51,45 @@ class AuthService {
       return null;
     }
   }
+  Future<void> registerUser(String email, String password) async {
+    try {
 
+      final UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      final User? user = userCredential.user;
+
+      if (user != null) {
+        await _firestore.collection('users').doc(user.uid).set({
+          'uid': user.uid,
+          'email': user.email,
+        });
+
+        print("User registered and added to Firestore");
+      }
+    } catch (e, stacktrace) {
+      print("Registration Error: $e");
+      print("StackTrace: $stacktrace");
+    }
+  }
+  Future<User?> loginUser(String email, String password) async {
+    try {
+      final UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      final User? user = userCredential.user;
+      print("Login successful: ${user?.email}");
+      return user;
+    } catch (e, stacktrace) {
+      print("Login Error: $e");
+      print("StackTrace: $stacktrace");
+      return null;
+    }
+  }
   Future<void> signOut(BuildContext context) async {
     try {
       await _auth.signOut();

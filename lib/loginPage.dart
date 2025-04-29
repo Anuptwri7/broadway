@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'package:classboradway/mainPage.dart';
+import 'package:classboradway/registerPage.dart';
 import 'package:classboradway/ui/forgetPassword.dart';
 import 'package:classboradway/ui/homepage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -48,7 +49,8 @@ class _LoginPageState extends State<LoginPage> {
     setState(() {
       isLoading = true;
     });
-    postLogin();
+    _authService.loginUser(_emailController.text, _passwordController.text);
+    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>MainPage()));
   }
   @override
   void initState() {
@@ -283,6 +285,12 @@ class _LoginPageState extends State<LoginPage> {
                       padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 24),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                     ),
+                  ),
+                ),
+                Center(
+                  child:   TextButton(
+                    onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => SignUpPage())),
+                    child: const Text("New to the app ? Sign up", style: TextStyle(fontWeight: FontWeight.w600)),
                   ),
                 ),
 

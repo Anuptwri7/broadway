@@ -14,6 +14,8 @@ import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 
+import 'createProduct.dart';
+
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -263,7 +265,8 @@ class _HomePageState extends State<HomePage> {
         ),
         actions: [
           ElevatedButton(onPressed: (){
-            _startScanning();
+            // _startScanning();
+            Navigator.push(context, MaterialPageRoute(builder: (context)=>Createproduct()));
           }, child: Text("Scan")),
           Padding(
             padding: const EdgeInsets.only(right: 16.0),
@@ -419,6 +422,72 @@ class _HomePageState extends State<HomePage> {
             controller: _controller,
             aspectRatio: 16 / 9,
           ),
+              const SizedBox(height: 20),
+          Container(
+            height: 200,
+            width: 400,
+            child: StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance.collection('products').snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return const Center(child: Text('Something went wrong'));
+                }
+
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                final docs = snapshot.data!.docs;
+
+                return GridView.builder(
+                  padding: const EdgeInsets.all(10),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 10,
+                    crossAxisSpacing: 10,
+                    childAspectRatio: 0.75,
+                  ),
+                  itemCount: docs.length,
+                  itemBuilder: (context, index) {
+                    final data = docs[index].data() as Map<String, dynamic>;
+
+                    return Card(
+                      elevation: 4,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Expanded(
+                            child: data['image'] != null && data['image'] != ""
+                                ? Image.network(
+                              data['image'],
+                              fit: BoxFit.cover,
+                            )
+                                : const Icon(Icons.image, size: 80),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(data['name'] ?? "No Name",
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.bold)),
+                                Text("Price: Rs .${data['price'] ?? 'N/A'}"),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+
+              const SizedBox(height: 20),
               CarouselSlider(
                 options: CarouselOptions(
                   height: 200,
