@@ -379,113 +379,50 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                height: 200,
-                width: 400,
-                child: GridView.builder(
-                  padding: EdgeInsets.all(8),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 8,
-                    mainAxisSpacing: 8,
-                    childAspectRatio: 16 / 9,
-                  ),
-                  itemCount: videoIds.length,
-                  itemBuilder: (context, index) {
-                    final video = videoIds[index];
-                    return GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          selectedVideoId = video;
-                          log(selectedVideoId.toString());
-                          _controller.loadVideoById(videoId: selectedVideoId!);
-                        });
-                      },
-                      child: Column(
-                        children: [
-                          Expanded(
-                            child: Image.network(
-                              "https://img.youtube.com/vi/${videoIds[index]}/hqdefault.jpg",
-                              fit: BoxFit.cover,
-                              width: double.infinity,
-                            ),
-                          ),
+          //     Container(
+          //       height: 200,
+          //       width: 400,
+          //       child: GridView.builder(
+          //         padding: EdgeInsets.all(8),
+          //         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          //           crossAxisCount: 2,
+          //           crossAxisSpacing: 8,
+          //           mainAxisSpacing: 8,
+          //           childAspectRatio: 16 / 9,
+          //         ),
+          //         itemCount: videoIds.length,
+          //         itemBuilder: (context, index) {
+          //           final video = videoIds[index];
+          //           return GestureDetector(
+          //             onTap: () {
+          //               setState(() {
+          //                 selectedVideoId = video;
+          //                 log(selectedVideoId.toString());
+          //                 _controller.loadVideoById(videoId: selectedVideoId!);
+          //               });
+          //             },
+          //             child: Column(
+          //               children: [
+          //                 Expanded(
+          //                   child: Image.network(
+          //                     "https://img.youtube.com/vi/${videoIds[index]}/hqdefault.jpg",
+          //                     fit: BoxFit.cover,
+          //                     width: double.infinity,
+          //                   ),
+          //                 ),
+          //
+          //               ],
+          //             ),
+          //           );
+          //         },
+          //       ),
+          //     ),
+          //
+          //     YoutubePlayer(
+          //   controller: _controller,
+          //   aspectRatio: 16 / 9,
+          // ),
 
-                        ],
-                      ),
-                    );
-                  },
-                ),
-              ),
-
-              YoutubePlayer(
-            controller: _controller,
-            aspectRatio: 16 / 9,
-          ),
-              const SizedBox(height: 20),
-          Container(
-            height: 200,
-            width: 400,
-            child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance.collection('products').snapshots(),
-              builder: (context, snapshot) {
-                if (snapshot.hasError) {
-                  return const Center(child: Text('Something went wrong'));
-                }
-
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-
-                final docs = snapshot.data!.docs;
-
-                return GridView.builder(
-                  padding: const EdgeInsets.all(10),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    mainAxisSpacing: 10,
-                    crossAxisSpacing: 10,
-                    childAspectRatio: 0.75,
-                  ),
-                  itemCount: docs.length,
-                  itemBuilder: (context, index) {
-                    final data = docs[index].data() as Map<String, dynamic>;
-
-                    return Card(
-                      elevation: 4,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Expanded(
-                            child: data['image'] != null && data['image'] != ""
-                                ? Image.network(
-                              data['image'],
-                              fit: BoxFit.cover,
-                            )
-                                : const Icon(Icons.image, size: 80),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(data['name'] ?? "No Name",
-                                    style: const TextStyle(
-                                        fontWeight: FontWeight.bold)),
-                                Text("Price: Rs .${data['price'] ?? 'N/A'}"),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
-          ),
 
               const SizedBox(height: 20),
               CarouselSlider(
@@ -510,54 +447,75 @@ class _HomePageState extends State<HomePage> {
                 }).toList(),
               ),
               const SizedBox(height: 20),
-              SizedBox(
-                height: 200,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: filteredProducts.length,
-                  itemBuilder: (context, index) {
-                    final product = filteredProducts[index];
-                    return GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ProductDetailPage(product: product),
+              Container(
+                height: 500,
+                width: 400,
+                child: StreamBuilder<QuerySnapshot>(
+                  stream: FirebaseFirestore.instance.collection('products').snapshots(),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasError) {
+                      return const Center(child: Text('Something went wrong'));
+                    }
+
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+
+                    final docs = snapshot.data!.docs;
+
+                    return GridView.builder(
+                      padding: const EdgeInsets.all(10),
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        mainAxisSpacing: 10,
+                        crossAxisSpacing: 10,
+                        childAspectRatio: 0.75,
+                      ),
+                      itemCount: docs.length,
+                      itemBuilder: (context, index) {
+                        final data = docs[index].data() as Map<String, dynamic>;
+
+                        return GestureDetector(
+                          onTap: (){
+                            Navigator.push(context, MaterialPageRoute(builder: (context)=>ProductDetailPage(product: data,)));
+                          },
+                          child: Card(
+                            elevation: 4,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                Expanded(
+                                  child: data['image'] != null && data['image'] != ""
+                                      ? Image.memory(
+                                    base64Decode(data['image']),
+                                    fit: BoxFit.cover,
+                                  )
+                                      : const Icon(Icons.image, size: 80),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(data['name'] ?? "No Name",
+                                          style: const TextStyle(
+                                              fontWeight: FontWeight.bold)),
+                                      Text("Price: Rs .${data['price'] ?? 'N/A'}"),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         );
                       },
-                      child: ProductCard(
-                        image: product['image'],
-                        name: product['name'],
-                        price: product['price'],
-                        onAddToCart: () => addToCart(product),
-                      ),
                     );
                   },
                 ),
               ),
-              SizedBox(height: 50,),
-              Row(
-                children: [
-                  Container(
-                    height:  MediaQuery.of(context).size.height/4,
-                    width: MediaQuery.of(context).size.width/2.2,
-                    color: Colors.red,
-                  ),
-                  SizedBox(width: 10,),
-                  Container(
-                    height:  MediaQuery.of(context).size.height/4,
-                    width: MediaQuery.of(context).size.width/2.2,
-                    color: Colors.red,
-                  ),
-                  // SizedBox(width: 10,),
-                  // Container(
-                  //   height:  MediaQuery.of(context).size.height/7,
-                  //   width: MediaQuery.of(context).size.width/5,
-                  //   color: Colors.red,
-                  // ),
-                ],
-              ),
+
           
             ],
           ),
@@ -653,7 +611,7 @@ class _ScannerViewState extends State<ScannerView> with SingleTickerProviderStat
       body: SafeArea(
         child: Stack(
           children: [
-            // Scanner
+
             MobileScanner(
               controller: controller,
               onDetect: (capture) {
@@ -666,7 +624,7 @@ class _ScannerViewState extends State<ScannerView> with SingleTickerProviderStat
               },
             ),
 
-            // Overlay
+
             Container(
               decoration: ShapeDecoration(
                 shape: ScannerOverlayShape(
@@ -679,7 +637,7 @@ class _ScannerViewState extends State<ScannerView> with SingleTickerProviderStat
               ),
             ),
 
-            // Animated Scanner Line
+
             Positioned.fill(
               child: AnimatedBuilder(
                 animation: _animation,
@@ -694,7 +652,7 @@ class _ScannerViewState extends State<ScannerView> with SingleTickerProviderStat
               ),
             ),
 
-            // Top Bar
+
             Positioned(
               top: 0,
               left: 0,

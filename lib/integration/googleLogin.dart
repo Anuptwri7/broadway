@@ -51,7 +51,7 @@ class AuthService {
       return null;
     }
   }
-  Future<void> registerUser(String email, String password) async {
+  Future<void> registerUser(String email, String password,String name, String phone, String gender) async {
     try {
 
       final UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
@@ -65,6 +65,9 @@ class AuthService {
         await _firestore.collection('users').doc(user.uid).set({
           'uid': user.uid,
           'email': user.email,
+          'name': name,
+          'phone': phone,
+          'gender': gender,
         });
 
         print("User registered and added to Firestore");
@@ -82,6 +85,7 @@ class AuthService {
       );
 
       final User? user = userCredential.user;
+      log("user email:"+user!.email!);
       print("Login successful: ${user?.email}");
       return user;
     } catch (e, stacktrace) {
@@ -101,6 +105,4 @@ class AuthService {
       log("StackTrace: $stacktrace");
     }
   }
-
-
 }

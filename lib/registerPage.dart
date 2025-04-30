@@ -22,12 +22,12 @@ class _SignUpPageState extends State<SignUpPage> {
   final TextEditingController _addressController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
-
+ String? selectedGender;
   bool _obsecure = true;
   bool _obsecure1 = true;
 
   void _signUp() {
-  _authService.registerUser(_emailController.text, _passwordController.text);
+  _authService.registerUser(_emailController.text, _passwordController.text,_nameController.text,_phoneNumberController.text,selectedGender!);
   }
 
 
@@ -84,6 +84,81 @@ class _SignUpPageState extends State<SignUpPage> {
                       prefixIcon: Icon(Icons.email),
                     )
                 ),
+                const SizedBox(height: 20),
+                DropdownButtonFormField<String>(
+                  value: selectedGender,
+                  items: ['Male', 'Female', 'Other']
+                      .map((gender) => DropdownMenuItem(value: gender, child: Text(gender)))
+                      .toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      selectedGender = value!;
+                    });
+                  },
+                  decoration: InputDecoration(labelText: "Gender"),
+                ),
+                TextFormField(
+                    controller: _nameController,
+                    cursorColor: Colors.red,
+                    keyboardType: TextInputType.emailAddress,
+                    style: const TextStyle(
+                      fontFamily: "poppins",
+                      color: Colors.black,
+                    ),
+                    decoration: const InputDecoration(
+                      filled: true,
+                      fillColor: Colors.white,
+                      labelStyle: TextStyle(fontFamily: "poppins",color: Colors.grey,fontSize: 14),
+                      label: Text("Email Address"),
+                      hintStyle: TextStyle(fontFamily: "poppins",color: Colors.grey,fontSize: 14),
+                      hintText: 'Email Address',
+                      contentPadding: EdgeInsets.symmetric(vertical: 18.0, horizontal: 18.0),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(15.0)),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.blue, width: 1.0),
+                        borderRadius: BorderRadius.all(Radius.circular(15.0)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Color(0xff56c7fc), width: 1.0),
+                        borderRadius: BorderRadius.all(Radius.circular(15.0)),
+                      ),
+                      prefixIcon: Icon(Icons.email),
+                    )
+                ),
+                const SizedBox(height: 20),
+                TextFormField(
+                    controller: _phoneNumberController,
+                    cursorColor: Colors.red,
+                    keyboardType: TextInputType.number,
+                    style: const TextStyle(
+                      fontFamily: "poppins",
+                      color: Colors.black,
+                    ),
+                    decoration: const InputDecoration(
+                      filled: true,
+                      fillColor: Colors.white,
+                      labelStyle: TextStyle(fontFamily: "poppins",color: Colors.grey,fontSize: 14),
+                      label: Text("Email Address"),
+                      hintStyle: TextStyle(fontFamily: "poppins",color: Colors.grey,fontSize: 14),
+                      hintText: 'Email Address',
+                      contentPadding: EdgeInsets.symmetric(vertical: 18.0, horizontal: 18.0),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(15.0)),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.blue, width: 1.0),
+                        borderRadius: BorderRadius.all(Radius.circular(15.0)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Color(0xff56c7fc), width: 1.0),
+                        borderRadius: BorderRadius.all(Radius.circular(15.0)),
+                      ),
+                      prefixIcon: Icon(Icons.email),
+                    )
+                ),
+                const SizedBox(height: 20),
 
                 const SizedBox(height: 20),
                 TextFormField(
@@ -190,7 +265,7 @@ class _SignUpPageState extends State<SignUpPage> {
                     width: 300,
                     child: ElevatedButton(
                       onPressed: (){
-                        _authService.registerUser(_emailController.text, _passwordController.text);
+                        _authService.registerUser(_emailController.text, _passwordController.text,_nameController.text,_phoneNumberController.text,selectedGender!);
                       },
                       style: ElevatedButton.styleFrom(
                         elevation: 0,
