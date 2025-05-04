@@ -3,6 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 
+import 'checkoutPage.dart';
+
 class CartPage extends StatefulWidget {
   const CartPage({super.key});
 
@@ -22,6 +24,7 @@ class _CartPageState extends State<CartPage> {
           .update({'qty': qty});
     }
   }
+
   Future<void> clearCart() async {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid != null) {
@@ -51,10 +54,55 @@ class _CartPageState extends State<CartPage> {
     return total;
   }
 
+  Future<void> proceedToCheckout(List<QueryDocumentSnapshot> items, double totalPrice) async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+
+
+    List<Map<String, dynamic>> selectedItems = items.map((doc) {
+      final data = doc.data() as Map<String, dynamic>;
+      return {
+        'id': doc.id,
+        'name': data['name'],
+        'price': data['price'],
+        'qty': data['qty'] ?? 1,
+        'image': data['image'],
+      };
+    }).toList();
+
+
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CheckoutPage(
+          price: totalPrice,
+          selectedItems: selectedItems,
+          onCheckoutSuccess: () async {
+
+            for (var doc in items) {
+              await FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(uid)
+                  .collection('cart')
+                  .doc(doc.id)
+                  .update({'isCheckout': true});
+            }
+          },
+        ),
+      ),
+    );
+
+
+    if (result == true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Checkout completed successfully!')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final uid = FirebaseAuth.instance.currentUser?.uid;
-
     if (uid == null) {
       return const Scaffold(
         body: Center(child: Text('User not logged in')),
@@ -91,7 +139,6 @@ class _CartPageState extends State<CartPage> {
           )
         ],
       ),
-
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection('users')
@@ -136,7 +183,6 @@ class _CartPageState extends State<CartPage> {
                                 if (qty > 1) {
                                   await updateQty(id, qty - 1);
                                 } else {
-
                                   await FirebaseFirestore.instance
                                       .collection('users')
                                       .doc(uid)
@@ -147,7 +193,6 @@ class _CartPageState extends State<CartPage> {
                               },
                               icon: const Icon(Icons.remove),
                             ),
-
                             Text(qty.toString()),
                             IconButton(
                               onPressed: () => updateQty(id, qty + 1),
@@ -178,10 +223,9 @@ class _CartPageState extends State<CartPage> {
                     ),
                     const SizedBox(height: 12),
                     ElevatedButton(
-                      onPressed: () {
-
-
-                      },
+                      onPressed: items.isEmpty
+                          ? null
+                          : () => proceedToCheckout(items, totalPrice),
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         backgroundColor: Colors.black,

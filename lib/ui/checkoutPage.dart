@@ -1,10 +1,10 @@
 import 'dart:developer';
 import 'dart:io';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:khalti_flutter/khalti_flutter.dart';
-import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
@@ -12,8 +12,14 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:open_file/open_file.dart';
 import 'package:intl/intl.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../integration/khalti.dart';
 import 'homepage.dart';
+
+
+
+
 
 enum PaymentMethod { esewa, cod, khalti }
 
@@ -34,7 +40,6 @@ class CheckoutPage extends StatefulWidget {
 }
 
 class _CheckoutPageState extends State<CheckoutPage> {
-
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController addressController = TextEditingController();
@@ -43,19 +48,57 @@ class _CheckoutPageState extends State<CheckoutPage> {
   double longitude = 0.0;
   PaymentMethod? selectedPaymentMethod;
   String orderId = '';
+  bool isProcessing = false;
 
   @override
   void initState() {
     super.initState();
     getCurrentLocation();
     orderId = DateTime.now().millisecondsSinceEpoch.toString();
+    loadUserDetails();
+  }
+
+  Future<void> loadUserDetails() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      try {
+
+        final userData = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
+
+        if (userData.exists) {
+          final data = userData.data();
+          if (data != null) {
+            setState(() {
+              phoneController.text = data['phone'] ?? '';
+              emailController.text = data['email'] ?? user.email ?? '';
+              addressController.text = data['address'] ?? '';
+            });
+          }
+        } else {
+
+          setState(() {
+            emailController.text = user.email ?? '';
+            phoneController.text = user.phoneNumber ?? '';
+          });
+        }
+      } catch (e) {
+        print('Error loading user details: $e');
+
+        setState(() {
+          emailController.text = user.email ?? '';
+          phoneController.text = user.phoneNumber ?? '';
+        });
+      }
+    }
   }
 
   Future<void> generateAndDownloadPDF() async {
     final pdf = pw.Document();
     final formatter = DateFormat('dd-MM-yyyy hh:mm a');
     final currentDate = formatter.format(DateTime.now());
-
 
     pdf.addPage(
       pw.MultiPage(
@@ -82,7 +125,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                   crossAxisAlignment: pw.CrossAxisAlignment.end,
                   children: [
                     pw.Text('Customer Details:'),
-                    pw.Text('Name: ${phoneController.text}'),
+                    pw.Text('Phone: ${phoneController.text}'),
                     pw.Text('Email: ${emailController.text}'),
                     pw.Text('Address: ${addressController.text}'),
                     pw.Text('Location: $currentAddress'),
@@ -170,13 +213,11 @@ class _CheckoutPageState extends State<CheckoutPage> {
       ),
     );
 
-
     try {
       final directory = await getExternalStorageDirectory() ?? await getApplicationDocumentsDirectory();
       final path = '${directory.path}/Invoice_$orderId.pdf';
       final file = File(path);
       await file.writeAsBytes(await pdf.save());
-
 
       OpenFile.open(path);
 
@@ -191,7 +232,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
     }
   }
 
-  Future<void> sendOrderEmail(List<Map<String, dynamic>> selectedItems) async {
+  Future<bool> sendOrderEmail(List<Map<String, dynamic>> selectedItems) async {
     final String serviceId = 'service_al7vazj';
     final String templateId = 'template_flcr12v';
     final String userId = 'oPGEMtN0yn6uz_g1n';
@@ -220,29 +261,121 @@ class _CheckoutPageState extends State<CheckoutPage> {
         'template_params': {
           'order_id': orderId,
           'customer_name': phoneController.text,
-          'email': "anuptwri007@gmail.com",
+          'email': emailController.text,
           'orders': formattedCartItems,
           'cost': {
             'shipping': '50',
             'tax': '100',
-            'total': widget.price.toString(),
+            'total': (widget.price + 150).toString(),
           }
         },
       }),
     );
 
     if (response.statusCode == 200) {
-      // Call the callback to remove checked items from cart
+
       await widget.onCheckoutSuccess();
       print('Email sent successfully!');
 
-      // Generate PDF after email is sent
+      await saveOrderToFirestore();
+
+
       await generateAndDownloadPDF();
+
+      return true;
     } else {
       print('Failed to send email: ${response.body}');
+      throw Exception('Failed to send email: ${response.body}');
     }
   }
 
+  Future<void> saveOrderToFirestore() async {
+    final user = FirebaseAuth.instance.currentUser;
+    log(user!.uid.toString());
+    if (user != null) {
+      try {
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid).collection("orders").doc(orderId)
+            .set({
+          'userId': user.uid,
+          'orderDate': FieldValue.serverTimestamp(),
+          'orderId': orderId,
+          'items': widget.selectedItems,
+          'total': widget.price + 150,
+          'shipping': 50.0,
+          'tax': 100.0,
+          'subtotal': widget.price,
+          'paymentMethod': selectedPaymentMethod?.name ?? 'unknown',
+          'status': 'completed',
+          'deliveryAddress':{
+            'lat':latitude,
+            'lng':longitude,
+          },
+          'officeAddress':{
+            'lat':27.7000,
+            'lng':85.3117,
+          },
+          'currentAddress':{
+            'lat':27.7000,
+            'lng':85.3117,
+          }
+
+        });
+        for (int i = 0; i < widget.selectedItems.length; i++) {
+          String itemId = widget.selectedItems[i]['id'];
+          FirebaseFirestore.instance
+              .collection('users')
+              .doc(user.uid)
+              .collection('cart')
+              .doc(itemId)
+              .update({'isCheckout': true,
+          'orderDetails':{
+            'userId': user.uid,
+            'orderDate': FieldValue.serverTimestamp(),
+            'orderId': orderId,
+            'items': widget.selectedItems,
+            'total': widget.price + 150,
+            'shipping': 50.0,
+            'tax': 100.0,
+            'subtotal': widget.price,
+            'paymentMethod': selectedPaymentMethod?.name ?? 'unknown',
+            'status': 'completed',
+            'deliveryAddress':{
+              'lat':latitude,
+              'lng':longitude,
+            },
+            'officeAddress':{
+              'lat':27.7000,
+              'lng':85.3117,
+            },
+            'currentAddress':{
+              'lat':27.7000,
+              'lng':85.3117,
+            }
+
+          }
+          });
+
+          // await updateCart(itemId);
+        }
+
+      } catch (e) {
+        print('Error saving order to Firestore: $e');
+      }
+    }
+  }
+  Future<void> updateCart(String itemName) async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid != null) {
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(uid)
+          .collection('cart')
+          .doc(itemName)
+          .update({'isCheckout': true});
+    }
+  }
   Future<void> getCurrentLocation() async {
     bool serviceEnabled;
     LocationPermission permission;
@@ -272,85 +405,129 @@ class _CheckoutPageState extends State<CheckoutPage> {
     });
   }
 
-  void proceedToPayment() {
-    if (phoneController.text.isEmpty || emailController.text.isEmpty || currentAddress.isEmpty || selectedPaymentMethod == null) {
+  Future<void> proceedToPayment() async {
+    if (phoneController.text.isEmpty || emailController.text.isEmpty || selectedPaymentMethod == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please fill all fields and select a payment method')),
       );
       return;
     }
 
-    // For COD payment method, skip Khalti and process directly
-    if (selectedPaymentMethod == PaymentMethod.cod) {
-      sendOrderEmail(widget.selectedItems);
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Order Placed'),
-            content: const Text('Your order has been placed successfully! You will pay on delivery.'),
-            actions: <Widget>[
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => HomePage()),
+    setState(() {
+      isProcessing = true;
+    });
+
+    try {
+
+      if (selectedPaymentMethod == PaymentMethod.cod) {
+        // await sendOrderEmail(widget.selectedItems);
+        await saveOrderToFirestore();
+
+        await generateAndDownloadPDF();
+
+        if (mounted) {
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: const Text('Order Placed'),
+                content: const Text('Your order has been placed successfully! You will pay on delivery.'),
+                actions: <Widget>[
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (context) => HomePage()),
+                      );
+                    },
+                    child: const Text('OK'),
+                  ),
+                ],
+              );
+            },
+          );
+        }
+        return;
+      }
+
+
+      KhaltiScope.of(context).pay(
+        config: PaymentConfig(
+            amount: (widget.price * 100).toInt(),
+            productIdentity: 'shopping-items-$orderId',
+            productName: 'Shopping Items'
+        ),
+        preferences: [
+          PaymentPreference.khalti,
+          PaymentPreference.connectIPS,
+          PaymentPreference.eBanking,
+          PaymentPreference.mobileBanking,
+        ],
+        onSuccess: (success) async {
+          print("Payment Success: $success");
+
+          try {
+            // await sendOrderEmail(widget.selectedItems);
+            await saveOrderToFirestore();
+
+            await generateAndDownloadPDF();
+
+            if (mounted) {
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: const Text('Payment Successful'),
+                    content: const Text('Your order has been placed successfully!'),
+                    actions: <Widget>[
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (context) => HomePage()),
+                          );
+                        },
+                        child: const Text('OK'),
+                      ),
+                    ],
                   );
                 },
-                child: const Text('OK'),
-              ),
-            ],
+              );
+            }
+          } catch (e) {
+            print("Error processing successful payment: $e");
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Error processing your order. Please contact support.')),
+            );
+          } finally {
+            setState(() {
+              isProcessing = false;
+            });
+          }
+        },
+        onFailure: (failure) {
+          print("Payment Failed: $failure");
+          setState(() {
+            isProcessing = false;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Payment failed. Please try again.')),
           );
         },
       );
-      return;
+    } catch (e) {
+      print("Error during payment process: $e");
+      setState(() {
+        isProcessing = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: ${e.toString()}')),
+      );
     }
-
-    KhaltiScope.of(context).pay(
-      config: PaymentConfig(
-          amount: (widget.price * 100).toInt(),
-          productIdentity: 'shopping-items',
-          productName: 'Shopping Items'
-      ),
-      preferences: [
-        PaymentPreference.khalti,
-        PaymentPreference.connectIPS,
-        PaymentPreference.eBanking,
-        PaymentPreference.mobileBanking,
-      ],
-      onSuccess: (success) {
-        print("Payment Success: $success");
-        sendOrderEmail(widget.selectedItems);
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text('Payment Successful'),
-              content: const Text('Your order has been placed successfully!'),
-              actions: <Widget>[
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (context) => HomePage()),
-                    );
-                  },
-                  child: const Text('OK'),
-                ),
-              ],
-            );
-          },
-        );
-      },
-      onFailure: (failure) {
-        print("Payment Failed: $failure");
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Payment failed. Please try again.')),
-        );
-      },
-    );
   }
 
   @override
@@ -359,7 +536,18 @@ class _CheckoutPageState extends State<CheckoutPage> {
       appBar: AppBar(
         title: const Text('Checkout'),
       ),
-      body: Padding(
+      body: isProcessing
+          ? const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(height: 16),
+            Text('Processing your order...'),
+          ],
+        ),
+      )
+          : Padding(
         padding: const EdgeInsets.all(16.0),
         child: ListView(
           children: [
@@ -443,7 +631,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                   double itemTotal = qty * price;
 
                   return DataRow(cells: [
-                    DataCell(Image.network(item['image'], width: 50, height: 50)),
+                    DataCell(Image.memory(base64Decode(item['image']), width: 50, height: 50)),
                     DataCell(Text(item['name'])),
                     DataCell(Text('${qty}')),
                     DataCell(Text('Rs.${price.toStringAsFixed(2)}')),
@@ -452,29 +640,69 @@ class _CheckoutPageState extends State<CheckoutPage> {
                 }).toList(),
               ),
             ),
-            Align(
-              alignment: Alignment.centerRight,
-              child: Padding(
-                padding: const EdgeInsets.only(top: 16.0),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text(
-                      "Total: ",
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    Text(
-                      "Rs.${widget.price.toStringAsFixed(2)}",
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.grey[100],
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Subtotal:', style: TextStyle(fontSize: 16)),
+                      Text('Rs.${widget.price.toStringAsFixed(2)}', style: const TextStyle(fontSize: 16)),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: const [
+                      Text('Shipping:', style: TextStyle(fontSize: 16)),
+                      Text('Rs.50.00', style: TextStyle(fontSize: 16)),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: const [
+                      Text('Tax:', style: TextStyle(fontSize: 16)),
+                      Text('Rs.100.00', style: TextStyle(fontSize: 16)),
+                    ],
+                  ),
+                  const Divider(thickness: 1, height: 24),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        "Total: ",
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        "Rs.${(widget.price + 150).toStringAsFixed(2)}",
+                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: proceedToPayment,
-              child: const Text('Proceed to Payment'),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                backgroundColor: Colors.black,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: const Text(
+                "Proceed to Payment",
+                style: TextStyle(fontSize: 18, color: Colors.white),
+              ),
             ),
           ],
         ),

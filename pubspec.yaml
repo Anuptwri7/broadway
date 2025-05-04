@@ -29,6 +29,8 @@ environment:
 # versions available, run `flutter pub outdated`.
 
 dependencies:
+  flutter_map: ^8.1.1
+  latlong2:
   youtube_player_iframe: ^5.2.1
   flutter_image_compress:
   local_auth: ^2.3.0
