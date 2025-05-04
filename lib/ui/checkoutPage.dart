@@ -452,7 +452,6 @@ class _CheckoutPageState extends State<CheckoutPage> {
         return;
       }
 
-
       KhaltiScope.of(context).pay(
         config: PaymentConfig(
             amount: (widget.price * 100).toInt(),
