@@ -70,6 +70,7 @@ class _OrderTrackingMapState extends State<OrderTrackingMap> {
 
     List<Marker> markers = [];
     List<LatLng> points = []; // officeAdress , deliveryAddress , currentAddress
+    // List<LatLng> points1 = [LatLng(27.7, 85.3117), LatLng(27.747471,85.364367), LatLng(27.7, 85.3117)];
 
 
     if (_orderData!.containsKey('officeAddress')) {
@@ -127,6 +128,7 @@ class _OrderTrackingMapState extends State<OrderTrackingMap> {
 
     setState(() {
       _markers = markers;
+      log(points.toString());
 
     });
 

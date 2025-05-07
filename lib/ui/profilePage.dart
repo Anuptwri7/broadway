@@ -75,7 +75,6 @@ class _ProfilePageState extends State<ProfilePage> {
 
                 const Divider(thickness: 1, height: 40),
 
-
                 const Text("My Cart", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                 StreamBuilder(
                   stream: getUserCart(user.uid),
