@@ -50,14 +50,17 @@ class _LoginPageState extends State<LoginPage> {
       isLoading = true;
     });
     _authService.loginUser(_emailController.text, _passwordController.text);
+    postLogin();
     Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>MainPage()));
   }
   @override
   void initState() {
     super.initState();
     _checkBiometrics();
+
   }
   Future<void> _checkBiometrics() async {
+    log("Here text'БЛАГОДАТЬ'");
     try {
       _canCheckBiometrics = await auth.canCheckBiometrics;
       _availableBiometrics = await auth.getAvailableBiometrics();
@@ -70,18 +73,21 @@ class _LoginPageState extends State<LoginPage> {
   Future postLogin() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     final response = await http.post(
-      Uri.parse('https://api.sarbamfoods.com/accounts/login/'),
+      Uri.parse('https://api-barrel.sooritechnology.com.np/api/v1/user-app/login'),
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
       },
       body: json.encode({
-        "email": _emailController.text,
-        "password": _passwordController.text,
+        "userName": "admin123",
+        "password": "123nepal",
       }),
     );
 
     if (response.statusCode == 200) {
+      SharedPreferences preferences = await SharedPreferences.getInstance();
+      preferences.setString("accessToken", jsonDecode(response.body)['tokens']['access']);
+
       setState(() => isLoading = false);
       _tabTextIndexSelected == 1
           ? Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => Mainpage()))
@@ -113,7 +119,7 @@ class _LoginPageState extends State<LoginPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  "Welcome",
+                  "Welcome БЛАГОДАТЬ",
                   style: TextStyle(fontSize: 48, fontWeight: FontWeight.bold),
                 ),
                 Text(
@@ -250,7 +256,7 @@ class _LoginPageState extends State<LoginPage> {
                       });
 
                       UserCredential? userCredential = await _authService.signInWithGoogle();
-
+                      postLogin();
                       setState(() {
                         isLoading = false;
                       });

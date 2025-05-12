@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 
+import '../model/itemModel.dart';
 class AddProductPage extends StatefulWidget {
   const AddProductPage({super.key});
 
@@ -16,8 +18,33 @@ class _AddProductPageState extends State<AddProductPage> {
   final TextEditingController nameController = TextEditingController();
   final TextEditingController priceController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
+  BarrelStock? selectedStock;
   File? _imageFile;
+  @override
+  void initState() {
+    super.initState();
+    fetchStockData();
+  }
+  Future<List<BarrelStock>> fetchStockData() async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    final response = await http.get(
+      Uri.parse(
+          'https://api-barrel.sooritechnology.com.np/api/v1/barrel-app/barrel-stock-analysis?offset=0&limit=20&ordering=-id'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': 'Bearer ${preferences.getString("accessToken")}',
+      },
+    );
 
+    if (response.statusCode == 200) {
+      final jsonData = jsonDecode(response.body);
+      final parsed = BarrelStockAnalysisResponse.fromJson(jsonData);
+      return parsed.results;
+    } else {
+      throw Exception("Failed to fetch data");
+    }
+  }
   Future<void> _pickImage() async {
     final picker = ImagePicker();
     final XFile? pickedFile = await showModalBottomSheet<XFile?>(
@@ -27,6 +54,7 @@ class _AddProductPageState extends State<AddProductPage> {
         builder: (_) => Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+
             ListTile(
               leading: const Icon(Icons.camera_alt),
               title: const Text('Take Photo'),
@@ -114,6 +142,38 @@ class _AddProductPageState extends State<AddProductPage> {
                   child: Text("Tap to select an image"),
                 ),
               ),
+            ),
+            FutureBuilder<List<BarrelStock>>(
+              future: fetchStockData(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return CircularProgressIndicator();
+                } else if (snapshot.hasError) {
+                  return Text("Error: ${snapshot.error}");
+                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return Text("No data found");
+                }
+
+                final stockList = snapshot.data!;
+
+                return DropdownButtonFormField<BarrelStock>(
+                  value: selectedStock,
+                  hint: Text("Select Item"),
+                  items: stockList.map((stock) {
+                    return DropdownMenuItem(
+                      value: stock,
+                      child: Text(stock.item.name),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      selectedStock = value;
+                    });
+                    print(
+                        "Selected: ${value!.item.name}, Batch: ${value.batchNo}, Qty: ${value.quantity}");
+                  },
+                );
+              },
             ),
             const SizedBox(height: 16),
             TextField(

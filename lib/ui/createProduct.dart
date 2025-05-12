@@ -15,6 +15,7 @@ class Createproduct extends StatefulWidget {
 class _CreateproductState extends State<Createproduct> {
   TextEditingController name = TextEditingController();
   TextEditingController price = TextEditingController();
+
   String? base64Image;
 
   Future<void> createProduct({

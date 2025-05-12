@@ -85,7 +85,14 @@ class AuthService {
       );
 
       final User? user = userCredential.user;
-      log("user email:"+user!.email!);
+
+      final DocumentSnapshot userSnapshot = await FirebaseFirestore.instance
+          .collection("users")
+          .doc(user!.uid)
+          .get();
+
+      final userData = userSnapshot.data() as Map<String, dynamic>?;
+      log("user email:"+userData.toString());
       print("Login successful: ${user?.email}");
       return user;
     } catch (e, stacktrace) {
