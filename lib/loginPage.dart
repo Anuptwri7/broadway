@@ -5,7 +5,9 @@ import 'package:classboradway/registerPage.dart';
 import 'package:classboradway/ui/forgetPassword.dart';
 import 'package:classboradway/ui/homepage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:flutter_toggle_tab/flutter_toggle_tab.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -14,6 +16,7 @@ import 'package:flutter/material.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'integration/googleLogin.dart';
+import 'main.dart';
 import 'sellerApp/mainPage.dart';
 
 class LoginPage extends StatefulWidget {
@@ -56,8 +59,37 @@ class _LoginPageState extends State<LoginPage> {
   @override
   void initState() {
     super.initState();
-    _checkBiometrics();
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      print("📩 Foreground message received");
+      print("Title: ${message.notification?.title}");
+      print("Body: ${message.notification?.body}");
+      print("Data: ${message.data}");
 
+      RemoteNotification? notification = message.notification;
+      AndroidNotification? android = message.notification?.android;
+
+      if (notification != null && android != null) {
+        flutterLocalNotificationsPlugin.show(
+          notification.hashCode,
+          notification.title,
+          notification.body,
+          const NotificationDetails(
+            android: AndroidNotificationDetails(
+              'classbroadway_channel',
+              'Classbroadway Notifications',
+              importance: Importance.max,
+              priority: Priority.high,
+            ),
+          ),
+        );
+      }
+    });
+
+
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      print('App opened via notification');
+    });
+    _checkBiometrics();
   }
   Future<void> _checkBiometrics() async {
     log("Here text'БЛАГОДАТЬ'");

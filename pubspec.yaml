@@ -29,6 +29,8 @@ environment:
 # versions available, run `flutter pub outdated`.
 
 dependencies:
+  flutter_local_notifications: ^17.1.2
+  firebase_messaging:
   flutter_map: ^8.1.1
   latlong2:
   youtube_player_iframe: ^5.2.1
@@ -45,6 +47,7 @@ dependencies:
   mobile_scanner: ^5.2.3
   open_file: ^3.3.2
   intl: ^0.18.1
+
   khalti_flutter:
   geocoding:
   geolocator:

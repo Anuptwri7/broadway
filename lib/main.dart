@@ -1,14 +1,28 @@
 import 'package:classboradway/sellerApp/mainPage.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:khalti_flutter/khalti_flutter.dart';
 import 'package:classboradway/ui/homepage.dart';
+import 'integration/notificationServices.dart';
 import 'loginPage.dart';
 import 'mainPage.dart';
-
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+  print("Handling background message: ${message.messageId}");
+}
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+FlutterLocalNotificationsPlugin();
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  NotificationService.initialize();
+  getDeviceToken();
+  const AndroidInitializationSettings androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+  const InitializationSettings initSettings = InitializationSettings(android: androidSettings);
+  await flutterLocalNotificationsPlugin.initialize(initSettings);
   runApp(MyApp());
 }
 class MyApp extends StatelessWidget {
@@ -38,4 +52,8 @@ class MyApp extends StatelessWidget {
       },
     );
   }
+}
+void getDeviceToken() async {
+  String? token = await FirebaseMessaging.instance.getToken();
+  print('FCM Token: $token');
 }

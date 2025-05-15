@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'dart:ui';
 
 import 'package:classboradway/sellerApp/ui/homePage.dart';
+import 'package:classboradway/sellerApp/ui/itemFetchPage.dart';
 import 'package:classboradway/ui/cartPage.dart';
 import 'package:classboradway/ui/homepage.dart';
 import 'package:classboradway/ui/profilePage.dart';
@@ -33,7 +34,8 @@ class _MainPageState extends State<MainPage> {
       ProductListPage(),
       CartPage(),
       HomePage(),
-      ProfilePage(),
+      // ProfilePage(),
+      ItemDropdownPage(),
     ];
   }
 
