@@ -87,7 +87,7 @@ class _LoginPageState extends State<LoginPage> {
 
 
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      print('App opened via notification');
+      print('🟢 App opened via notification');
     });
     _checkBiometrics();
   }

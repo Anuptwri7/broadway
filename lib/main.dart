@@ -8,12 +8,18 @@ import 'package:classboradway/ui/homepage.dart';
 import 'integration/notificationServices.dart';
 import 'loginPage.dart';
 import 'mainPage.dart';
+
+@pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
   print("Handling background message: ${message.messageId}");
 }
+
+
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
 FlutterLocalNotificationsPlugin();
+
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
