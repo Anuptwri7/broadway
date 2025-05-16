@@ -46,7 +46,7 @@ class MyApp extends StatelessWidget {
           theme: ThemeData(
             primarySwatch: Colors.red,
           ),
-          home:  AnimateDemoPage(),
+          home:  Mainpage(),
           navigatorKey: e,
           supportedLocales: const [
             Locale('en', 'US'),

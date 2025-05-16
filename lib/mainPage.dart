@@ -1,203 +1,78 @@
-import 'dart:developer';
 import 'dart:ui';
 
+import 'package:classboradway/extraDose/animation.dart';
 import 'package:classboradway/ui/cartPage.dart';
 import 'package:classboradway/ui/homepage.dart';
+import 'package:classboradway/ui/profilePage.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:fluttertoast/fluttertoast.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:liquid_swipe/liquid_swipe.dart';
 
 class Mainpage extends StatefulWidget {
-   Mainpage({super.key});
+  const Mainpage({super.key});
 
   @override
-  _MainpageState createState() => _MainpageState();
+  State<Mainpage> createState() => _MainpageState();
 }
 
 class _MainpageState extends State<Mainpage> {
   int _currentIndex = 0;
-  final PageController _pageController = PageController(initialPage: 0);
+  late LiquidController _liquidController;
 
   @override
   void initState() {
+    _liquidController = LiquidController();
     super.initState();
   }
 
-
-  List<Widget> _buildScreens() {
-    return [
-       HomePage(),
-      CartPage(),
-      HomePage(),
-      HomePage(),
-    ];
-  }
+  final List<Widget> pages = [
+    const HomePage(),
+    const CartPage(),
+    const AnimateDemoPage(),
+    const ProfilePage()
+  ];
 
   void _onTabTapped(int index) {
-      _pageController.jumpToPage(index);
-      setState(() {
-        _currentIndex = index;
-      });
+    setState(() {
+      _currentIndex = index;
+    });
+    _liquidController.animateToPage(page: index, duration: 700);
   }
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        bool shouldExit = await _showExitDialog(context);
-        return shouldExit;
-      },
-      child: Scaffold(
-        body: PageView(
-          controller: _pageController,
-          onPageChanged: (index) {
-            setState(() {
-              _currentIndex = index;
-            });
-          },
-          physics: const NeverScrollableScrollPhysics(),
-          children: _buildScreens(),
-        ),
-        bottomNavigationBar: BottomNavigationBar(
-          currentIndex: _currentIndex,
-          onTap: _onTabTapped,
-          items: [
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.home_outlined),
-              label: "Home",
-            ),
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.shopping_bag),
-              label: "Cart",
-            ),
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.settings),
-              label: "Settings",
-            ),
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.person_outline_rounded),
-              label: "Profile",
-            ),
-          ],
-          selectedItemColor: Colors.red,
-          unselectedItemColor: Colors.grey,
-          type: BottomNavigationBarType.fixed,
-        ),
+    return Scaffold(
+      body: LiquidSwipe(
+        pages: pages,
+        enableLoop: false,
+        positionSlideIcon: 0.5,
+        waveType: WaveType.liquidReveal,
+        slideIconWidget: const Icon(Icons.arrow_back_ios),
+        liquidController: _liquidController,
+        onPageChangeCallback: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        onTap: _onTabTapped,
+        selectedItemColor: Colors.red,
+        unselectedItemColor: Colors.grey,
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: "Home"),
+          BottomNavigationBarItem(icon: Icon(Icons.shopping_bag), label: "Cart"),
+          BottomNavigationBarItem(icon: Icon(Icons.settings), label: "Settings"),
+          BottomNavigationBarItem(icon: Icon(Icons.person_outline_rounded), label: "Profile"),
+        ],
+        type: BottomNavigationBarType.fixed,
       ),
     );
   }
 
-  Future<bool> _showExitDialog(BuildContext context) async {
-    const Color backgroundColor = Colors.white;
-    const Color textColor = Colors.black87;
-
-    return await showDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      barrierColor: Colors.black54,
-      builder: (BuildContext context) {
-        return Dialog(
-          backgroundColor: backgroundColor,
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20.0),
-          ),
-          child: Container(
-            padding: const EdgeInsets.all(24),
-            constraints: const BoxConstraints(maxWidth: 340),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.red.withOpacity(0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.exit_to_app_rounded,
-                    color: Colors.red,
-                    size: 32,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                const Text(
-                  'Exit App',
-                  style: TextStyle(
-                    color: textColor,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Are you sure you want to exit the app?',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: textColor.withOpacity(0.8),
-                    fontSize: 16,
-                    height: 1.5,
-                  ),
-                ),
-                const SizedBox(height: 32),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextButton(
-                        onPressed: () => Navigator.of(context).pop(false),
-                        style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: Text(
-                          'Cancel',
-                          style: TextStyle(
-                            color: textColor.withOpacity(0.8),
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: () => Navigator.of(context).pop(true),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: const Text(
-                          'Exit',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    ) ??
-        false;
-  }
-
   @override
   void dispose() {
-    _pageController.dispose();
+    // _liquidController.dispose();
     super.dispose();
   }
 }
