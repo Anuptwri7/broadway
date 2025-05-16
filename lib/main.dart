@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:khalti_flutter/khalti_flutter.dart';
 import 'package:classboradway/ui/homepage.dart';
+import 'extraDose/animation.dart';
 import 'integration/notificationServices.dart';
 import 'loginPage.dart';
 import 'mainPage.dart';
@@ -45,7 +46,7 @@ class MyApp extends StatelessWidget {
           theme: ThemeData(
             primarySwatch: Colors.red,
           ),
-          home:  LoginPage(),
+          home:  AnimateDemoPage(),
           navigatorKey: e,
           supportedLocales: const [
             Locale('en', 'US'),
