@@ -46,7 +46,7 @@ class _MainpageState extends State<Mainpage> {
         enableLoop: false,
         positionSlideIcon: 0.5,
         waveType: WaveType.liquidReveal,
-        slideIconWidget: const Icon(Icons.arrow_back_ios),
+        slideIconWidget:  Image.asset("assets/icon.jpg",height: 20,),
         liquidController: _liquidController,
         onPageChangeCallback: (index) {
           setState(() {
