@@ -1,3 +1,4 @@
+import 'package:classboradway/providers/dropdownProvider.dart';
 import 'package:classboradway/providers/loginProvider.dart';
 import 'package:classboradway/sellerApp/mainPage.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -42,6 +43,7 @@ void main() async {
 
       providers: [
         ChangeNotifierProvider(create: (_) => LoginProvider()),
+        ChangeNotifierProvider(create: (_) => StockProvider()),
       ],
       child: MyApp()));
 }

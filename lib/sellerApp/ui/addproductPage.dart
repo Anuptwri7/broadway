@@ -24,6 +24,7 @@ class _AddProductPageState extends State<AddProductPage> {
   void initState() {
     super.initState();
     fetchStockData();
+
   }
   Future<List<BarrelStock>> fetchStockData() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();

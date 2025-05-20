@@ -80,5 +80,4 @@ class LoginProvider extends ChangeNotifier{
     _isLoading = value;
     notifyListeners();
   }
-
 }

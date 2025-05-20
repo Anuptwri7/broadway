@@ -2,7 +2,10 @@ import 'dart:convert';
 import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../providers/dropdownProvider.dart';
+import '../model/itemModel.dart';
 import '../model/itemPractiseModel.dart';
 
 class ItemDropdownPage extends StatefulWidget {
@@ -13,7 +16,14 @@ class ItemDropdownPage extends StatefulWidget {
 }
 
 class _ItemDropdownPageState extends State<ItemDropdownPage> {
-  ItemModel? _selectedItem;
+  String? _selectedItem = "Select Item";
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    Future.microtask(() =>
+        Provider.of<StockProvider>(context, listen: false).fetchStockData());
+  }
   Future<List<ItemModel>> fetchItems() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     final url = Uri.parse('https://api-barrel.sooritechnology.com.np/api/v1/barrel-app/barrel-item');
@@ -38,40 +48,36 @@ class _ItemDropdownPageState extends State<ItemDropdownPage> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            FutureBuilder<List<ItemModel>>(
-              future: fetchItems(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
-                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(child: Text('No items found.'));
-                } else {
-                  final items = snapshot.data!;
-                  return DropdownButton<ItemModel>(
-                    hint: const Text('Select an Item'),
-                    value: _selectedItem,
-                    isExpanded: true,
-                    items: items.map((item) {
-                      return DropdownMenuItem<ItemModel>(
-                        value: item,
-                        child: Text(item.name),
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedItem = value;
-                      });
-
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Selected: ${value?.name}')),
-                      );
-                    },
-                  );
+            Consumer<StockProvider>(
+              builder: (context, provider, child) {
+                if (provider.isLoading) {
+                  // return const CircularProgressIndicator();
+                } else if (provider.error != null) {
+                  return Text("Error: ${provider.error}");
+                } else if (provider.stockList.isEmpty) {
+                  return const Text("No data found");
                 }
+
+                return DropdownButtonFormField<BarrelStock>(
+
+                  hint:  Text(_selectedItem!),
+                  items: provider.stockList.map((stock) {
+                    return DropdownMenuItem(
+                      value: stock,
+                      child: Text(stock.item.name),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedItem = value!.item.name;
+                    });
+                    print(
+                        "Selected: ${value!.item.name}, Batch: ${value.batchNo}, Qty: ${value.quantity}");
+                  },
+                );
               },
             ),
+
           ],
         ),
       ),
