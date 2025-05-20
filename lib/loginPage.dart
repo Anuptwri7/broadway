@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'package:classboradway/mainPage.dart';
+import 'package:classboradway/providers/loginProvider.dart';
 import 'package:classboradway/registerPage.dart';
 import 'package:classboradway/ui/forgetPassword.dart';
 import 'package:classboradway/ui/homepage.dart';
@@ -14,6 +15,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:local_auth/local_auth.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'integration/googleLogin.dart';
 import 'main.dart';
@@ -52,6 +54,7 @@ class _LoginPageState extends State<LoginPage> {
     setState(() {
       isLoading = true;
     });
+
     _authService.loginUser(_emailController.text, _passwordController.text);
     postLogin();
     Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>MainPage()));
@@ -85,9 +88,8 @@ class _LoginPageState extends State<LoginPage> {
       }
     });
 
-
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      print('🟢 App opened via notification');
+      print('App opened via notification');
     });
     _checkBiometrics();
   }
@@ -139,12 +141,13 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    var loginProvider = Provider.of<LoginProvider>(context);
     return SafeArea(
       child: Scaffold(
         backgroundColor: const Color(0xfff5f5f5),
         body: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
-          child: isLoading
+          child: loginProvider.isLoading
               ? const Center(child: SpinKitFadingCircle(color: Color(0xffBF1E2E), size: 50))
               : SingleChildScrollView(
             child: Column(
@@ -232,7 +235,10 @@ class _LoginPageState extends State<LoginPage> {
                         height: 50,
                         width: 180,
                         child: ElevatedButton(
-                          onPressed: _login,
+                          onPressed: (){
+                             loginProvider.loginUser(_emailController.text, _passwordController.text);
+                             loginProvider.postLogin(context, _tabTextIndexSelected);
+                          },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.red,
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),

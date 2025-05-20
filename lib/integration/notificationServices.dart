@@ -35,4 +35,25 @@ class NotificationService {
       print('Error displaying notification: $e');
     }
   }
+
+
+  final FirebaseMessaging _messaging = FirebaseMessaging.instance;
+
+  Future<void> init() async {
+    NotificationSettings settings = await _messaging.requestPermission();
+
+    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+      String? token = await _messaging.getToken();
+      print("FCM Token: $token");
+
+      FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+        print("Received foreground message: ${message.notification?.title}");
+      });
+
+      FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+        print("App opened from notification: ${message.data}");
+      });
+    }
+  }
+
 }

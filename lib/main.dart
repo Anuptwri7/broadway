@@ -1,10 +1,13 @@
+import 'package:classboradway/providers/loginProvider.dart';
 import 'package:classboradway/sellerApp/mainPage.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_in_app_messaging/firebase_in_app_messaging.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:khalti_flutter/khalti_flutter.dart';
 import 'package:classboradway/ui/homepage.dart';
+import 'package:provider/provider.dart';
 import 'extraDose/animation.dart';
 import 'integration/notificationServices.dart';
 import 'loginPage.dart';
@@ -26,11 +29,21 @@ void main() async {
   await Firebase.initializeApp();
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   NotificationService.initialize();
+  await NotificationService().init();
+
+  FirebaseInAppMessaging.instance.triggerEvent("my_custom_event");
+  FirebaseInAppMessaging.instance.setMessagesSuppressed(false);
+
   getDeviceToken();
   const AndroidInitializationSettings androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
   const InitializationSettings initSettings = InitializationSettings(android: androidSettings);
   await flutterLocalNotificationsPlugin.initialize(initSettings);
-  runApp(MyApp());
+  runApp(MultiProvider(
+
+      providers: [
+        ChangeNotifierProvider(create: (_) => LoginProvider()),
+      ],
+      child: MyApp()));
 }
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -46,7 +59,7 @@ class MyApp extends StatelessWidget {
           theme: ThemeData(
             primarySwatch: Colors.red,
           ),
-          home:  Mainpage(),
+          home:  LoginPage(),
           navigatorKey: e,
           supportedLocales: const [
             Locale('en', 'US'),

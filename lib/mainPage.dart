@@ -44,9 +44,9 @@ class _MainpageState extends State<Mainpage> {
       body: LiquidSwipe(
         pages: pages,
         enableLoop: false,
-        positionSlideIcon: 0.5,
+        positionSlideIcon: 0.1,
         waveType: WaveType.liquidReveal,
-        slideIconWidget:  Image.asset("assets/icon.jpg",height: 20,),
+        slideIconWidget:  Icon(Icons.back_hand),
         liquidController: _liquidController,
         onPageChangeCallback: (index) {
           setState(() {

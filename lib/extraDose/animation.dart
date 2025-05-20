@@ -109,9 +109,7 @@ class _AnimateDemoPageState extends State<AnimateDemoPage> {
                   color: Color.lerp(Colors.red, Colors.blue, value),
                   padding: EdgeInsets.all(8),
                   child: child,
-
                 ),
-
             ),
             /// change text according to time
             Animate().toggle(
@@ -122,8 +120,8 @@ class _AnimateDemoPageState extends State<AnimateDemoPage> {
                 .listen(callback: (value) => print('current opacity: $value')),
           ///keep blinking
             Text("STOCK ALERT !",style: TextStyle(color: Colors.red),).animate(
-              delay: 1000.ms,
-              onPlay: (controller) => controller.repeat(), // loop
+              delay: 500.ms,
+              onPlay: (controller) => controller.repeat(),
             ).fadeIn(delay: 500.ms)
           ],
         ),
