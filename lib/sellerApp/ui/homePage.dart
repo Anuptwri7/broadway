@@ -69,10 +69,8 @@ class _ProductListPageState extends State<ProductListPage> {
           IconButton(
             icon: const Icon(Icons.add),
             onPressed: () async {
-              await Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const AddProductPage()),
-              );
+
+              Navigator.pushNamed(context, "/createProduct");
               loadProducts();
             },
           )

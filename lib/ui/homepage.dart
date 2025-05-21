@@ -422,8 +422,6 @@ class _HomePageState extends State<HomePage> {
           //   controller: _controller,
           //   aspectRatio: 16 / 9,
           // ),
-
-
               const SizedBox(height: 20),
               CarouselSlider(
                 options: CarouselOptions(

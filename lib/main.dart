@@ -1,6 +1,7 @@
 import 'package:classboradway/providers/dropdownProvider.dart';
 import 'package:classboradway/providers/loginProvider.dart';
 import 'package:classboradway/sellerApp/mainPage.dart';
+import 'package:classboradway/ui/createProduct.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_in_app_messaging/firebase_in_app_messaging.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -58,6 +59,12 @@ class MyApp extends StatelessWidget {
         return MaterialApp(
           debugShowCheckedModeBanner: false,
           title: 'Flutter Demo',
+          routes: {
+            '/home': (context) => HomePage(),
+            '/mainPage': (context) => MainPage(),
+            '/createProduct': (context) => Createproduct(),
+
+          },
           theme: ThemeData(
             primarySwatch: Colors.red,
           ),
