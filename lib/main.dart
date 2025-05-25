@@ -2,15 +2,19 @@ import 'package:classboradway/providers/dropdownProvider.dart';
 import 'package:classboradway/providers/loginProvider.dart';
 import 'package:classboradway/sellerApp/mainPage.dart';
 import 'package:classboradway/ui/createProduct.dart';
+import 'package:classboradway/ui/homepage.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_in_app_messaging/firebase_in_app_messaging.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:khalti_flutter/khalti_flutter.dart';
-import 'package:classboradway/ui/homepage.dart';
+
 import 'package:provider/provider.dart';
 import 'extraDose/animation.dart';
+import 'extraDose/cal.dart';
+
 import 'integration/notificationServices.dart';
 import 'loginPage.dart';
 import 'mainPage.dart';
@@ -29,6 +33,8 @@ FlutterLocalNotificationsPlugin();
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  WidgetsFlutterBinding.ensureInitialized();
+  MobileAds.instance.initialize();
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   NotificationService.initialize();
   await NotificationService().init();
@@ -60,15 +66,14 @@ class MyApp extends StatelessWidget {
           debugShowCheckedModeBanner: false,
           title: 'Flutter Demo',
           routes: {
-            '/home': (context) => HomePage(),
+            // '/home': (context) => HomePage(),
             '/mainPage': (context) => MainPage(),
             '/createProduct': (context) => Createproduct(),
-
           },
           theme: ThemeData(
             primarySwatch: Colors.red,
           ),
-          home:  LoginPage(),
+          home:  HomePage(),
           navigatorKey: e,
           supportedLocales: const [
             Locale('en', 'US'),

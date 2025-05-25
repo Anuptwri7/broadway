@@ -5,6 +5,7 @@ import 'package:classboradway/ui/productDetailPage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
@@ -16,7 +17,7 @@ import 'package:path_provider/path_provider.dart';
 
 import 'createProduct.dart';
 
-
+// ca-app-pub-2967592892447323/6904609644
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -26,6 +27,8 @@ class HomePage extends StatefulWidget {
 
 
 class _HomePageState extends State<HomePage> {
+  late BannerAd _bannerAd;
+  bool _isAdLoaded = false;
   final AuthService _authService = AuthService();
     TextEditingController searchController = TextEditingController();
   late YoutubePlayerController _controller;
@@ -80,6 +83,22 @@ class _HomePageState extends State<HomePage> {
       autoPlay: false,
       params: const YoutubePlayerParams(showFullscreenButton: true),
     );
+    _bannerAd = BannerAd(
+
+          adUnitId: 'ca-app-pub-3940256099942544/6300978111',
+      request: AdRequest(),
+      size: AdSize.banner,
+      listener: BannerAdListener(
+        onAdLoaded: (_) {
+          setState(() {
+            _isAdLoaded = true;
+          });
+        },
+        onAdFailedToLoad: (ad, error) {
+          ad.dispose();
+        },
+      ),
+    )..load();
   }
 
   Future<void> _startScanning() async {
@@ -379,6 +398,13 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+
+              if (_isAdLoaded)
+                Container(
+                  height: _bannerAd.size.height.toDouble(),
+                  width: _bannerAd.size.width.toDouble(),
+                  child: AdWidget(ad: _bannerAd),
+                ),
           //     Container(
           //       height: 200,
           //       width: 400,
@@ -731,6 +757,7 @@ class _ScannerViewState extends State<ScannerView> with SingleTickerProviderStat
   @override
   void dispose() {
     _animationController.dispose();
+    // _bannerAd.dispose();
     controller.dispose();
     super.dispose();
   }

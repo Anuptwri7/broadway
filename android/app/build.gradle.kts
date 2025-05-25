@@ -44,6 +44,7 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:33.12.0"))
     implementation("com.google.firebase:firebase-analytics")
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
+    implementation("com.google.android.gms:play-services-ads:24.3.0")
 
 }
 
