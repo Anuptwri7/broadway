@@ -3,6 +3,7 @@ import 'package:classboradway/providers/loginProvider.dart';
 import 'package:classboradway/sellerApp/mainPage.dart';
 import 'package:classboradway/ui/createProduct.dart';
 import 'package:classboradway/ui/homepage.dart';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_in_app_messaging/firebase_in_app_messaging.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -15,6 +16,10 @@ import 'package:provider/provider.dart';
 import 'extraDose/animation.dart';
 import 'extraDose/cal.dart';
 
+
+import 'extraDose/curvedScreen.dart';
+import 'extraDose/diceRoller.dart';
+import 'integration/ar_trial.dart';
 import 'integration/notificationServices.dart';
 import 'loginPage.dart';
 import 'mainPage.dart';
@@ -24,6 +29,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
   print("Handling background message: ${message.messageId}");
 }
+
 
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
@@ -73,7 +79,7 @@ class MyApp extends StatelessWidget {
           theme: ThemeData(
             primarySwatch: Colors.red,
           ),
-          home:  HomePage(),
+          home:  BackgroundDesign(),
           navigatorKey: e,
           supportedLocales: const [
             Locale('en', 'US'),

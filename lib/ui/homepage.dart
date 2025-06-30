@@ -29,6 +29,57 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   late BannerAd _bannerAd;
   bool _isAdLoaded = false;
+  final String _appOpenAdUnitId = 'ca-app-pub-2967592892447323/8565768576';
+  AppOpenAd? _appOpenAd;
+  bool _isShowingAd = false;
+  void loadAd() {
+    AppOpenAd.load(
+      adUnitId: _appOpenAdUnitId,
+      request: const AdRequest(),
+      adLoadCallback: AppOpenAdLoadCallback(
+        onAdLoaded: (ad) {
+          _appOpenAd = ad;
+          _appOpenAd!.show();
+        },
+        onAdFailedToLoad: (error) {
+          print('AppOpenAd failed to load: $error');
+        },
+      ),
+    );
+  }
+  bool get isAdAvailable {
+    return _appOpenAd != null;
+  }
+
+  void showAdIfAvailable() {
+    if (!isAdAvailable) {
+      loadAd();
+      return;
+    }
+    if (_isShowingAd) {
+      return;
+    }
+
+    _appOpenAd!.fullScreenContentCallback = FullScreenContentCallback(
+      onAdShowedFullScreenContent: (ad) {
+        _isShowingAd = true;
+      },
+      onAdFailedToShowFullScreenContent: (ad, error) {
+        _isShowingAd = false;
+        ad.dispose();
+        _appOpenAd = null;
+      },
+      onAdDismissedFullScreenContent: (ad) {
+        _isShowingAd = false;
+        ad.dispose();
+        _appOpenAd = null;
+        loadAd();
+      },
+    );
+
+    _appOpenAd!.show();
+  }
+
   final AuthService _authService = AuthService();
     TextEditingController searchController = TextEditingController();
   late YoutubePlayerController _controller;
@@ -68,6 +119,8 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     loadCartItems();
     fetchVideos();
+      loadAd();
+
     loadProfileImage();
     loadUserProducts();
     filteredProducts = products;
@@ -84,7 +137,6 @@ class _HomePageState extends State<HomePage> {
       params: const YoutubePlayerParams(showFullscreenButton: true),
     );
     _bannerAd = BannerAd(
-
           adUnitId: 'ca-app-pub-3940256099942544/6300978111',
       request: AdRequest(),
       size: AdSize.banner,
@@ -341,15 +393,13 @@ class _HomePageState extends State<HomePage> {
                   children: [
                     CircleAvatar(
                       radius: 50,
-                      backgroundImage: _imagePath != null
-                          ? FileImage(File(_imagePath!))
-                          : const AssetImage('assets/icon.jpg') ,
+                      backgroundImage:  AssetImage('assets/icon.jpg') ,
                     ),
                     Positioned(
                       bottom: 0,
                       right: 0,
                       child: GestureDetector(
-                        onTap: _pickImage,
+                        onTap: (){},
                         child: Container(
                           decoration: BoxDecoration(
                             color: Colors.white,
@@ -391,7 +441,6 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
       ),
-
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: SingleChildScrollView(
@@ -405,50 +454,53 @@ class _HomePageState extends State<HomePage> {
                   width: _bannerAd.size.width.toDouble(),
                   child: AdWidget(ad: _bannerAd),
                 ),
-          //     Container(
-          //       height: 200,
-          //       width: 400,
-          //       child: GridView.builder(
-          //         padding: EdgeInsets.all(8),
-          //         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          //           crossAxisCount: 2,
-          //           crossAxisSpacing: 8,
-          //           mainAxisSpacing: 8,
-          //           childAspectRatio: 16 / 9,
-          //         ),
-          //         itemCount: videoIds.length,
-          //         itemBuilder: (context, index) {
-          //           final video = videoIds[index];
-          //           return GestureDetector(
-          //             onTap: () {
-          //               setState(() {
-          //                 selectedVideoId = video;
-          //                 log(selectedVideoId.toString());
-          //                 _controller.loadVideoById(videoId: selectedVideoId!);
-          //               });
-          //             },
-          //             child: Column(
-          //               children: [
-          //                 Expanded(
-          //                   child: Image.network(
-          //                     "https://img.youtube.com/vi/${videoIds[index]}/hqdefault.jpg",
-          //                     fit: BoxFit.cover,
-          //                     width: double.infinity,
-          //                   ),
-          //                 ),
-          //
-          //               ],
-          //             ),
-          //           );
-          //         },
-          //       ),
-          //     ),
-          //
-          //     YoutubePlayer(
-          //   controller: _controller,
-          //   aspectRatio: 16 / 9,
-          // ),
+              Container(
+                height: 200,
+                width: 400,
+                child: GridView.builder(
+                  padding: EdgeInsets.all(8),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 8,
+                    mainAxisSpacing: 8,
+                    childAspectRatio: 16 / 9,
+                  ),
+                  itemCount: videoIds.length,
+                  itemBuilder: (context, index) {
+                    final video = videoIds[index];
+                    return GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          selectedVideoId = video;
+                          log(selectedVideoId.toString());
+                          _controller.loadVideoById(videoId: selectedVideoId!);
+                        });
+                      },
+                      child: Column(
+                        children: [
+                          Expanded(
+                            child: Image.network(
+                              "https://img.youtube.com/vi/${videoIds[index]}/hqdefault.jpg",
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                            ),
+                          ),
+
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+
+              YoutubePlayer(
+            controller: _controller,
+            aspectRatio: 16 / 9,
+          ),
               const SizedBox(height: 20),
+
+
+
               CarouselSlider(
                 options: CarouselOptions(
                   height: 200,
@@ -470,6 +522,9 @@ class _HomePageState extends State<HomePage> {
                   );
                 }).toList(),
               ),
+
+
+
               const SizedBox(height: 20),
               Container(
                 height: 500,
@@ -530,6 +585,10 @@ class _HomePageState extends State<HomePage> {
                                     ],
                                   ),
                                 ),
+                                ElevatedButton(onPressed: (){
+                                  addToCart(data[index]);
+                                }, child: Text("Add to cart"))
+
                               ],
                             ),
                           ),
@@ -539,8 +598,6 @@ class _HomePageState extends State<HomePage> {
                   },
                 ),
               ),
-
-          
             ],
           ),
         ),

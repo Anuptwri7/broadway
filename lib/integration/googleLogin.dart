@@ -1,5 +1,5 @@
 import 'dart:developer';
-
+import 'package:classboradway/extraDose/getWeather.dart';
 import 'package:classboradway/loginPage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -8,8 +8,10 @@ import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 class AuthService {
+
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
   final GoogleSignIn _googleSignIn = GoogleSignIn(
     scopes: [
       'email',
@@ -51,6 +53,7 @@ class AuthService {
       return null;
     }
   }
+
   Future<void> registerUser(String email, String password,String name, String phone, String gender) async {
     try {
 
@@ -59,16 +62,19 @@ class AuthService {
         password: password,
       );
 
+
       final User? user = userCredential.user;
 
       if (user != null) {
-        await _firestore.collection('users').doc(user.uid).set({
+        await _firestore.collection('users').doc(user.uid).set(
+            {
           'uid': user.uid,
           'email': user.email,
           'name': name,
           'phone': phone,
           'gender': gender,
-        });
+        }
+        );
 
         print("User registered and added to Firestore");
       }
@@ -83,6 +89,7 @@ class AuthService {
         email: email,
         password: password,
       );
+
 
       final User? user = userCredential.user;
 

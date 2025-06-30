@@ -19,8 +19,6 @@ import 'homepage.dart';
 
 
 
-
-
 enum PaymentMethod { esewa, cod, khalti }
 
 class CheckoutPage extends StatefulWidget {
@@ -271,6 +269,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
         },
       }),
     );
+
 
     if (response.statusCode == 200) {
 

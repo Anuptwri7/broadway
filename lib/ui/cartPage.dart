@@ -58,7 +58,6 @@ class _CartPageState extends State<CartPage> {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) return;
 
-
     List<Map<String, dynamic>> selectedItems = items.map((doc) {
       final data = doc.data() as Map<String, dynamic>;
       return {

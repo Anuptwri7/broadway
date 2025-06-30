@@ -46,6 +46,40 @@ class _LoginPageState extends State<LoginPage> {
     DataTab(title: "Seller"),
   ];
 
+  Future postLogin() async {
+
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    final response = await http.post(
+      Uri.parse('https://api-barrel.sooritechnology.com.np/api/v1/user-app/login'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: json.encode({
+        "userName": _emailController.text,
+        "password":_passwordController.text,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      // SharedPreferences preferences = await SharedPreferences.getInstance();
+      // preferences.setString("accessToken", jsonDecode(response.body)['tokens']['access']);
+
+
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => MainPage()));
+    } else {
+
+
+      Fluttertoast.showToast(
+        msg: "Invalid credentials",
+        toastLength: Toast.LENGTH_SHORT,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+      );
+    }
+    return response;
+  }
   void _login() {
     String email = _emailController.text.trim();
     String password = _passwordController.text.trim();
@@ -104,40 +138,7 @@ class _LoginPageState extends State<LoginPage> {
     }
     setState(() {});
   }
-  Future postLogin() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    final response = await http.post(
-      Uri.parse('https://api-barrel.sooritechnology.com.np/api/v1/user-app/login'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      body: json.encode({
-        "userName": "admin123",
-        "password": "123nepal",
-      }),
-    );
 
-    if (response.statusCode == 200) {
-      SharedPreferences preferences = await SharedPreferences.getInstance();
-      preferences.setString("accessToken", jsonDecode(response.body)['tokens']['access']);
-
-      setState(() => isLoading = false);
-      _tabTextIndexSelected == 1
-          ? Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => Mainpage()))
-          : Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => MainPage()));
-    } else {
-      _passwordController.clear();
-      setState(() => isLoading = false);
-      Fluttertoast.showToast(
-        msg: "Invalid credentials",
-        toastLength: Toast.LENGTH_SHORT,
-        backgroundColor: Colors.red,
-        textColor: Colors.white,
-      );
-    }
-    return response;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -159,7 +160,7 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 Text(
                   "Please sign in to continue",
-                  style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+                  style: TextStyle(fontSize: 18, color: Colors.grey[600])
                 ),
                 const SizedBox(height: 30),
 
@@ -212,7 +213,9 @@ class _LoginPageState extends State<LoginPage> {
                       children: [
                         Checkbox(
                           value: _rememberMe,
-                          onChanged: (value) => setState(() => _rememberMe = value ?? true),
+                          onChanged: (value) => setState(() => _rememberMe = value!
+
+                               ),
                         ),
                         const Text("Remember Me"),
                       ],
@@ -406,4 +409,6 @@ class _LoginPageState extends State<LoginPage> {
     }
 
   }}
+
+
 
