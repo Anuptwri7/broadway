@@ -364,6 +364,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
       }
     }
   }
+
   Future<void> updateCart(String itemName) async {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid != null) {

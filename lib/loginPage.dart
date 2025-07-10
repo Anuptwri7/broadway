@@ -29,6 +29,7 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+
   final AuthService _authService = AuthService();
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final TextEditingController _emailController = TextEditingController();
@@ -49,12 +50,13 @@ class _LoginPageState extends State<LoginPage> {
   Future postLogin() async {
 
     SharedPreferences prefs = await SharedPreferences.getInstance();
-
     final response = await http.post(
       Uri.parse('https://api-barrel.sooritechnology.com.np/api/v1/user-app/login'),
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
+
+
       },
       body: json.encode({
         "userName": _emailController.text,
@@ -63,8 +65,8 @@ class _LoginPageState extends State<LoginPage> {
     );
 
     if (response.statusCode == 200) {
-      // SharedPreferences preferences = await SharedPreferences.getInstance();
-      // preferences.setString("accessToken", jsonDecode(response.body)['tokens']['access']);
+      SharedPreferences preferences = await SharedPreferences.getInstance();
+      preferences.setString("accessToken", jsonDecode(response.body)['tokens']['access']);
 
 
       Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => MainPage()));
@@ -128,7 +130,7 @@ class _LoginPageState extends State<LoginPage> {
     _checkBiometrics();
   }
   Future<void> _checkBiometrics() async {
-    log("Here text'БЛАГОДАТЬ'");
+
     try {
       _canCheckBiometrics = await auth.canCheckBiometrics;
       _availableBiometrics = await auth.getAvailableBiometrics();
@@ -138,7 +140,6 @@ class _LoginPageState extends State<LoginPage> {
     }
     setState(() {});
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -340,7 +341,6 @@ class _LoginPageState extends State<LoginPage> {
                     child: const Text("New to the app ? Sign up", style: TextStyle(fontWeight: FontWeight.w600)),
                   ),
                 ),
-
               ],
             ),
           ),
@@ -381,6 +381,7 @@ class _LoginPageState extends State<LoginPage> {
       ),
     );
   }
+
   Future<void> _authenticateWithBiometrics() async {
     try {
       bool didAuthenticate = await auth.authenticate(
@@ -392,6 +393,8 @@ class _LoginPageState extends State<LoginPage> {
       );
       if(didAuthenticate){
         log("logged in");
+      }else{
+
       }
     } on PlatformException catch (e) {
       if (e.code == 'LockedOut') {
@@ -408,7 +411,9 @@ class _LoginPageState extends State<LoginPage> {
       }
     }
 
-  }}
+  }
+
+}
 
 
 

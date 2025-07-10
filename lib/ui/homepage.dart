@@ -124,6 +124,7 @@ class _HomePageState extends State<HomePage> {
     loadProfileImage();
     loadUserProducts();
     filteredProducts = products;
+
     _controller = YoutubePlayerController(
       params: YoutubePlayerParams(
         mute: false,
@@ -136,6 +137,7 @@ class _HomePageState extends State<HomePage> {
       autoPlay: false,
       params: const YoutubePlayerParams(showFullscreenButton: true),
     );
+
     _bannerAd = BannerAd(
           adUnitId: 'ca-app-pub-3940256099942544/6300978111',
       request: AdRequest(),
@@ -485,7 +487,6 @@ class _HomePageState extends State<HomePage> {
                               width: double.infinity,
                             ),
                           ),
-
                         ],
                       ),
                     );
@@ -498,8 +499,6 @@ class _HomePageState extends State<HomePage> {
             aspectRatio: 16 / 9,
           ),
               const SizedBox(height: 20),
-
-
 
               CarouselSlider(
                 options: CarouselOptions(
@@ -522,8 +521,6 @@ class _HomePageState extends State<HomePage> {
                   );
                 }).toList(),
               ),
-
-
 
               const SizedBox(height: 20),
               Container(
@@ -556,7 +553,7 @@ class _HomePageState extends State<HomePage> {
 
                         return GestureDetector(
                           onTap: (){
-                            Navigator.push(context, MaterialPageRoute(builder: (context)=>ProductDetailPage(product: data,)));
+                              Navigator.push(context, MaterialPageRoute(builder: (context)=>ProductDetailPage(product: data,)));
                           },
                           child: Card(
                             elevation: 4,

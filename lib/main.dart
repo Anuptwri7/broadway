@@ -30,11 +30,8 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   print("Handling background message: ${message.messageId}");
 }
 
-
-
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
 FlutterLocalNotificationsPlugin();
-
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

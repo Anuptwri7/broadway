@@ -69,7 +69,6 @@ class _CartPageState extends State<CartPage> {
       };
     }).toList();
 
-
     final result = await Navigator.push(
       context,
       MaterialPageRoute(

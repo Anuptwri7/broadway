@@ -5,8 +5,9 @@ const kHeightMedium = SizedBox(
   height: 16,
 );
 const kHeightSmall = SizedBox(
-  height: 8,
+  height: 10,
 );
+
 const kCardElevation = 8.0;
 const kMarginPaddMedium = EdgeInsets.all(16.0);
 const kMarginPaddSmall = EdgeInsets.all(8.0);

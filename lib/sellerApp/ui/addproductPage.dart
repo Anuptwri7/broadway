@@ -45,6 +45,7 @@ class _AddProductPageState extends State<AddProductPage> {
       throw Exception("Failed to fetch data");
     }
   }
+
   Future<void> _pickImage() async {
     final picker = ImagePicker();
     final XFile? pickedFile = await showModalBottomSheet<XFile?>(

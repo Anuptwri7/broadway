@@ -6,10 +6,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
 
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   final GoogleSignIn _googleSignIn = GoogleSignIn(
@@ -53,8 +54,11 @@ class AuthService {
       return null;
     }
   }
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  Future<void> registerUser(String email, String password,String name, String phone, String gender) async {
+
+
+  Future<void> registerUser(String email,String password,String name,String phone,String gender) async {
     try {
 
       final UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
@@ -65,32 +69,22 @@ class AuthService {
 
       final User? user = userCredential.user;
 
-      if (user != null) {
-        await _firestore.collection('users').doc(user.uid).set(
-            {
-          'uid': user.uid,
-          'email': user.email,
-          'name': name,
-          'phone': phone,
-          'gender': gender,
-        }
-        );
 
-        print("User registered and added to Firestore");
-      }
     } catch (e, stacktrace) {
       print("Registration Error: $e");
       print("StackTrace: $stacktrace");
     }
   }
   Future<User?> loginUser(String email, String password) async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
     try {
       final UserCredential userCredential = await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
 
-
+    preferences.setString("email", email);
+    preferences.setString("password", password);
       final User? user = userCredential.user;
 
       final DocumentSnapshot userSnapshot = await FirebaseFirestore.instance

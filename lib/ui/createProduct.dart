@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
@@ -23,6 +24,8 @@ class _CreateproductState extends State<Createproduct> {
     required String price,
     required String base64Image,
   }) async {
+
+
     try {
       await FirebaseFirestore.instance.collection('products').add({
         'name': name,
