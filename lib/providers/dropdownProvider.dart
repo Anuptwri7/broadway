@@ -12,9 +12,6 @@ class StockProvider with ChangeNotifier {
   String? _error;
 
   List<BarrelStock> get stockList => _stockList;
-
-
-
   bool get isLoading => _isLoading;
   String? get error => _error;
 

@@ -29,7 +29,15 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
           Text("name:${widget.name}"),
           Text("price:${widget.price}"),
           Image.asset(widget.image),
-         ElevatedButton(
+          Container(
+              child:Column(
+                  children : [
+                    Image.asset('asset/bg.jpg'),
+                  ]
+              )
+          ),
+
+          ElevatedButton(
              style: ElevatedButton.styleFrom(
     backgroundColor:Colors.blue
     ),
